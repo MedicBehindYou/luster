@@ -1,0 +1,79 @@
+# manifest.py
+#    luster
+#    Copyright (C) 2023  MedicBehindYou
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import config_loader
+import os
+import sqlite3
+import datetime
+
+
+config = config_loader.load_config()
+
+
+if config:
+    DATABASE_DB = (config['Manifest']['database_db'])
+    LOG_TXT = (config['Manifest']['log_txt'])    
+else:
+    log('Configuration not loaded.')
+    sys.exit()
+
+def collector(DIRECTORY):
+    files_list = []
+    for root, dirs, files in os.walk(DIRECTORY):
+        for file in files:
+            files_list.append(os.path.join(root, file))
+    return files_list
+
+def file_insert(files_list, DATABASE_DB, site):
+    conn = sqlite3.connect(DATABASE_DB)
+    cursor = conn.cursor()
+    complete = 0
+    fileNum = len(files_list)
+    print("Processing", fileNum, "files.")
+    
+    try:
+        for file in files_list:
+            file_name = os.path.basename(file)
+            cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file_name,))
+            result = cursor.fetchone()[0]
+
+            if result == 0:
+                cursor.execute("INSERT INTO {} (file, path) VALUES (?, ?)".format(site), (file_name, file))
+            complete = complete + 1
+            if complete / 10000 == 1:
+                print("Processed", complete, "entries.")
+                conn.commit()
+
+    except Exception as e:
+        print("error: ", e)
+        conn.close()
+    finally:
+        conn.commit()
+        conn.close()
+
+
+
+#DIRECTORY = "/app/downloads/rule34"
+#site = "rule34"
+#timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+#print("Creating list. Starting at: ", timestamp)
+#files_list = collector(DIRECTORY)
+#timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+#print("List created, starting insert. Starting at: ", timestamp)
+#file_insert(files_list, DATABASE_DB, site)
+#timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+#print("Finished at: ", timestamp)

@@ -37,7 +37,7 @@ def downloader(downloadList, site, downTag):
     e = None
     try:
         if site == 'rule34':
-            rootPath = '/app/downloads/rule34'
+            rootPath = '/app/downloads/rule34/'
         tag = "~".join(downTag)
         chars_to_replace = ['/', '<', '>', ':', '"', "\\", '|', '?', '*', '-', '(', ')']
         replacement_char = ''
@@ -72,6 +72,7 @@ def downloader(downloadList, site, downTag):
                     with open(destination, 'wb') as f:
                         f.write(response.content) 
                     cursor.execute("INSERT INTO {} (file, path) VALUES (?, ?)".format(site), (file, destination))
+                    conn.commit()
                     print("Downloaded", file)
                 elif result == 1:
                     cursor.execute("SELECT path FROM {} WHERE file = ?".format(site), (file,))
@@ -88,6 +89,7 @@ def downloader(downloadList, site, downTag):
             return 0
         else:
             return 1
+        conn.commit()
         conn.close()
 
 

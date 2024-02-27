@@ -32,7 +32,7 @@ from uncensor import uncensor
 from db_migration import has_version_table, current_version, migrate
 from no_ai import no_ai
 from rule34 import rule34C
-import manifest
+from manifest import collect
 from downloader import downloader
 from preskip import preskip
 
@@ -102,6 +102,16 @@ if len(sys.argv) > 1 and sys.argv[1] == "--no_ai":
     create_backup()
     no_ai(DATABASE_DB)
     manage_backups()
+    sys.exit()
+
+if len(sys.argv) > 1 and sys.argv[1] == "--collect":
+    if len(sys.argv) > 2:
+        create_backup()
+        site = sys.argv[2]
+        collect(site, DATABASE_DB)
+        manage_backups()
+    else:
+        print("Usage: --collect <site>")
     sys.exit()
 
 reverse_mode = False

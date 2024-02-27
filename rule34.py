@@ -18,6 +18,7 @@
 import requests
 import json
 from urllib.parse import quote
+from logger import log
 
 def rule34C(downTag):
     joined_tags = "+".join(downTag)
@@ -52,6 +53,6 @@ def rule34C(downTag):
                 break
         finally:
             if end != 1:
-                print(page)
+                print("Collecting on page", page)
                 page = page + 1
     return downloadList

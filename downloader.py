@@ -22,6 +22,7 @@ import config_loader
 import sqlite3
 import shutil
 import os
+from logger import log
 
 config = config_loader.load_config()
 
@@ -38,6 +39,7 @@ def downloader(downloadList, site, downTag):
     try:
         if site == 'rule34':
             rootPath = '/app/downloads/rule34/'
+
         tag = "~".join(downTag)
         chars_to_replace = ['/', '<', '>', ':', '"', "\\", '|', '?', '*', '-', '(', ')']
         replacement_char = ''
@@ -47,12 +49,18 @@ def downloader(downloadList, site, downTag):
         replacement_char = '-'
         for char in chars_to_replace:
             tag = tag.replace(char, replacement_char)
-        print(tag)
 
         tag = tag + "/"
         tagPath = rootPath + tag
         if not os.path.exists(tagPath):
             os.makedirs(tagPath)
+
+        initItems = len(downloadList)
+        currItems = 0
+        ok_count = 0
+        err_count = 0
+        cpd_count = 0
+
 
         conn = sqlite3.connect(DATABASE_DB)
         cursor = conn.cursor()
@@ -65,23 +73,41 @@ def downloader(downloadList, site, downTag):
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file,))
                 result = cursor.fetchone()[0]     
                 if result == 0:
-                    destination = rootPath + tag + file
-                    
-                    conn.commit()
-                    response = requests.get(file_url)
-                    with open(destination, 'wb') as f:
-                        f.write(response.content) 
-                    cursor.execute("INSERT INTO {} (file, path) VALUES (?, ?)".format(site), (file, destination))
-                    conn.commit()
-                    print("Downloaded", file)
+                    try:
+                        destination = rootPath + tag + file
+                        
+                        conn.commit()
+                        response = requests.get(file_url)
+                        with open(destination, 'wb') as f:
+                            f.write(response.content) 
+                        cursor.execute("INSERT INTO {} (file, path) VALUES (?, ?)".format(site), (file, destination))
+                        conn.commit()
+                        ok_count = ok_count + 1
+                        currItems = currItems + 1
+                        progress = str(currItems) + "/" + str(initItems)
+                        print(f'DOWNLOADED [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
+                    except Exception as e:
+                        err_count = err_count + 1
+                        currItems = currItems + 1
+                        progress = str(currItems) + "/" + str(initItems)                  
+                        print(f'ERROR: {e} [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
+
                 elif result == 1:
                     cursor.execute("SELECT path FROM {} WHERE file = ?".format(site), (file,))
                     source_path = cursor.fetchone()[0]
                     destination = rootPath + tag + file
-                    shutil.copyfile(source_path, destination)
-                    print("Copied from", destination)
+                    if not source_path == destination:
+                        if not os.path.exists(destination):
+                            shutil.copyfile(source_path, destination)
+                    cpd_count = cpd_count + 1
+                    currItems = currItems + 1
+                    progress = str(currItems) + "/" + str(initItems)                   
+                    print(f'INHERITED [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
                 else:
-                    print("Unknown. Result:", result, "URL:", file_url)
+                    err_count = err_count + 1
+                    currItems = currItems + 1
+                    progress = str(currItems) + "/" + str(initItems)                  
+                    print(f'ERROR [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
     except Exception as e:
         log(f'Process for tag "{tag}" failed with error: {e}')
     finally:

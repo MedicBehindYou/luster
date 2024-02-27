@@ -33,25 +33,40 @@ def preskip(downloadList, site, downTag):
     if site == 'rule34':
         rootPath = '/app/downloads/rule34/'
     tag = "+".join(downTag)
-    path = rootPath + tag + "/"
-    print(downloadList)
+
+    tag = "~".join(downTag)
+    chars_to_replace = ['/', '<', '>', ':', '"', "\\", '|', '?', '*', '-', '(', ')']
+    replacement_char = ''
+    for char in chars_to_replace:
+        tag = tag.replace(char, replacement_char)
+    chars_to_replace = ['~', '_']
+    replacement_char = '-'
+    for char in chars_to_replace:
+        tag = tag.replace(char, replacement_char)
+
+    tag = tag + "/"
+    path = rootPath + tag
+    
     dupeFiles = []
+    initItems = len(downloadList)
+    print("Intial list count is", initItems, ", starting preskip.")
     for file_url in downloadList:
-        print("Checking", file_url)
+        print("Line 41: file_url:", file_url)
         pattern = r"\/images\/\d+\/([a-f0-9]+.*)"
         file_match = re.search(pattern, file_url)
         if file_match:
             file = file_match.group(1)
-            print(file)
+            print("Line 45: file = ", file)
             file_path = path + file
-            print(file_path)
+            print("Line 47: file_path = ", file_path)
             if os.path.exists(file_path):
                 dupeFiles.append(file_url)
-                print("Pre-Skipping:", file_url)
             else:
-                print("Does not exist:", file_path)
+                print("URL", file_url, "has no match. Checked against: ", file_path)
     for file_url in dupeFiles:
         downloadList.remove(file_url)
+    finalItems = len(downloadList)
+    skipped = initItems - finalItems
+    print("Preskipped", skipped, "items out of", initItems)
 
-    print(downloadList)
     return downloadList

@@ -95,9 +95,9 @@ def migrate():
 
             conn.commit()
             conn.close()
-            
+            version = "1.0.0"
             log('DB upgraded from 0.0.0 to 1.0.0')
-        elif version == "1.0.0":
+        if version == "1.0.0":
             create_backup()
             cursor.execute('''CREATE TABLE IF NOT EXISTS rule34 (file TEXT UNIQUE, path TEXT);''')
             cursor.execute('''CREATE INDEX IF NOT EXISTS idx_file ON rule34 (file);''')

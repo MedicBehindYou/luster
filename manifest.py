@@ -19,6 +19,7 @@ import config_loader
 import os
 import sqlite3
 import datetime
+from logger import log
 
 
 config = config_loader.load_config()
@@ -66,14 +67,19 @@ def file_insert(files_list, DATABASE_DB, site):
         conn.close()
 
 
+def collect(site, DATABASE_DB):
+    if site == "rule34":
+        DIRECTORY = "/app/downloads/rule34"
 
-#DIRECTORY = "/app/downloads/rule34"
-#site = "rule34"
-#timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-#print("Creating list. Starting at: ", timestamp)
-#files_list = collector(DIRECTORY)
-#timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-#print("List created, starting insert. Starting at: ", timestamp)
-#file_insert(files_list, DATABASE_DB, site)
-#timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-#print("Finished at: ", timestamp)
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print("Creating list. Starting at: ", timestamp)
+    files_list = collector(DIRECTORY)
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print("List created, starting insert. Starting at: ", timestamp)
+    file_insert(files_list, DATABASE_DB, site)
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print("Finished at: ", timestamp)
+
+
+
+

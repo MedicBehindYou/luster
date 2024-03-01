@@ -28,7 +28,7 @@ def rule34C(downTag):
     downloadList = []
     end = 0
     while True:
-        url = f"{baseURL}&tags={joined_tags}&pid={page}&json=1"
+        url = f"{baseURL}&tags={joined_tags}&pid={page}&json=1&limit=1000"
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
         try:
             response = requests.get(url, headers=headers)

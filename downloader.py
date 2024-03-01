@@ -35,8 +35,9 @@ else:
 
 
 def downloader(downloadList, site, downTag):
-    e = None
+    e = "Couldn't possibly be a failure code"
     try:
+        e = "Couldn't possibly be a failure code"
         if site == 'rule34':
             rootPath = '/app/downloads/rule34/'
 
@@ -50,6 +51,7 @@ def downloader(downloadList, site, downTag):
         for char in chars_to_replace:
             tag = tag.replace(char, replacement_char)
 
+        dir_tag = tag
         tag = tag + "/"
         tagPath = rootPath + tag
         if not os.path.exists(tagPath):
@@ -64,23 +66,23 @@ def downloader(downloadList, site, downTag):
 
         conn = sqlite3.connect(DATABASE_DB)
         cursor = conn.cursor()
+        pattern = re.compile(r"\/images\/\d+\/([a-f0-9]+.*)")
 
         for file_url in downloadList:
-            pattern = r"\/images\/\d+\/([a-f0-9]+.*)"
             file_match = re.search(pattern, file_url)
             if file_match:
                 file = file_match.group(1)
+                
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file,))
                 result = cursor.fetchone()[0]     
                 if result == 0:
                     try:
                         destination = rootPath + tag + file
-                        
-                        conn.commit()
                         response = requests.get(file_url)
                         with open(destination, 'wb') as f:
-                            f.write(response.content) 
-                        cursor.execute("INSERT INTO {} (file, path) VALUES (?, ?)".format(site), (file, destination))
+                            f.write(response.content)
+                        conn.execute('BEGIN TRANSACTION') 
+                        cursor.execute("INSERT INTO {} (file, tags) VALUES (?, ?)".format(site), (file, dir_tag))
                         conn.commit()
                         ok_count = ok_count + 1
                         currItems = currItems + 1
@@ -93,12 +95,19 @@ def downloader(downloadList, site, downTag):
                         print(f'ERROR: {e} [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
 
                 elif result == 1:
-                    cursor.execute("SELECT path FROM {} WHERE file = ?".format(site), (file,))
-                    source_path = cursor.fetchone()[0]
+                    cursor.execute("SELECT tags FROM {} WHERE file = ?".format(site), (file,))
+                    entry_tags = cursor.fetchone()
+                    sep_tags = entry_tags[0].split(',')
+                    source_path = rootPath + sep_tags[0] + "/" + file
+
                     destination = rootPath + tag + file
                     if not source_path == destination:
-                        if not os.path.exists(destination):
                             shutil.copyfile(source_path, destination)
+                    if not dir_tag in sep_tags:
+                        conn.execute('BEGIN TRANSACTION') 
+                        add_tag = "," + dir_tag
+                        cursor.execute("UPDATE {} SET tags = tags || ? WHERE file = ?".format(site), (add_tag, file))
+                        conn.commit()
                     cpd_count = cpd_count + 1
                     currItems = currItems + 1
                     progress = str(currItems) + "/" + str(initItems)                   
@@ -110,12 +119,14 @@ def downloader(downloadList, site, downTag):
                     print(f'ERROR [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
     except Exception as e:
         log(f'Process for tag "{tag}" failed with error: {e}')
+        conn.rollback()
     finally:
-        if e == None:
+        if e == "Couldn't possibly be a failure code":
+            print("Downloader Completed Successfully")
             return 0
         else:
+            print("Downloader did an oopsie :(")
             return 1
-        conn.commit()
         conn.close()
 
 

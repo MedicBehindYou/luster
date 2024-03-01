@@ -45,7 +45,7 @@ def file_insert(files_list, DATABASE_DB, site):
     complete = 0
     fileNum = len(files_list)
     print("Processing", fileNum, "files.")
-#    sql_query = "UPDATE ? SET tags = tags || ? WHERE file = ?"
+    sql_query = "UPDATE ? SET tags = tags || ? WHERE file = ?"
 
     try:
         for file in files_list:
@@ -55,22 +55,16 @@ def file_insert(files_list, DATABASE_DB, site):
 
             cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file_name,))
             result = cursor.fetchone()[0]
-            cursor.execute("SELECT tags FROM {} WHERE file = ?".format(site), (file_name,))
-            existing_tags = cursor.fetchone()
-            
+
             if result == 0:
                 cursor.execute("INSERT INTO {} (file, tags) VALUES (?, ?)".format(site), (file_name, tag))
                 complete = complete + 1
-            if existing_tags:
-                sep_tags = existing_tags[0].split(',')
-                if result == 1 and tag not in sep_tags:
-                    add_tag = "," + tag
-                    cursor.execute("UPDATE {} SET tags = tags || ? WHERE file = ?".format(site), (add_tag, file_name))
-                    complete = complete + 1
-
-#    except Exception as e:
-#        print("error: ", e)
-#        conn.close()
+            if result != 0:
+                cursor.execute("UPDATE {} SET tags = tags || ? WHERE file = ?".format(site), (tag, file_name))
+                complete = complete + 1
+    except Exception as e:
+        print("error: ", e)
+        conn.close()
     finally:
         print("Processed", complete, "entries.")
         conn.commit()
@@ -89,4 +83,3 @@ def collect(site, DATABASE_DB):
     file_insert(files_list, DATABASE_DB, site)
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     print("Finished at: ", timestamp)
-

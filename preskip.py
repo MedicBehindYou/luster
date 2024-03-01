@@ -17,7 +17,6 @@
 
 import config_loader
 import sqlite3
-import os
 import re
 
 config = config_loader.load_config()
@@ -30,6 +29,9 @@ else:
     sys.exit()
 
 def preskip(downloadList, site, downTag):
+    conn = sqlite3.connect(DATABASE_DB)
+    cursor = conn.cursor()
+    
     if site == 'rule34':
         rootPath = '/app/downloads/rule34/'
     tag = "+".join(downTag)
@@ -43,26 +45,27 @@ def preskip(downloadList, site, downTag):
     replacement_char = '-'
     for char in chars_to_replace:
         tag = tag.replace(char, replacement_char)
-
-    tag = tag + "/"
-    path = rootPath + tag
     
     dupeFiles = []
+    pattern = re.compile(r"\/images\/\d+\/([a-f0-9]+.*)")
     initItems = len(downloadList)
     print("Intial list count is", initItems, ", starting preskip.")
     for file_url in downloadList:
-        print("Line 41: file_url:", file_url)
-        pattern = r"\/images\/\d+\/([a-f0-9]+.*)"
+
         file_match = re.search(pattern, file_url)
         if file_match:
             file = file_match.group(1)
-            print("Line 45: file = ", file)
-            file_path = path + file
-            print("Line 47: file_path = ", file_path)
-            if os.path.exists(file_path):
-                dupeFiles.append(file_url)
-            else:
-                print("URL", file_url, "has no match. Checked against: ", file_path)
+
+            cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file,))
+            result = cursor.fetchone()[0]
+            cursor.execute("SELECT tags FROM {} WHERE file = ?".format(site), (file,))
+            existing_tags = cursor.fetchone()
+            
+            if existing_tags:
+                sep_tags = existing_tags[0].split(',')
+                if result == 1 and tag in sep_tags:
+                    dupeFiles.append(file_url)
+            
     for file_url in dupeFiles:
         downloadList.remove(file_url)
     finalItems = len(downloadList)

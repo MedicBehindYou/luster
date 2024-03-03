@@ -23,6 +23,7 @@ import sqlite3
 import shutil
 import os
 from logger import log
+import datetime
 
 config = config_loader.load_config()
 
@@ -36,6 +37,7 @@ else:
 
 def downloader(downloadList, site, downTag):
     e = "Couldn't possibly be a failure code"
+
     try:
         e = "Couldn't possibly be a failure code"
         if site == 'rule34':
@@ -62,8 +64,6 @@ def downloader(downloadList, site, downTag):
         ok_count = 0
         err_count = 0
         cpd_count = 0
-
-
         conn = sqlite3.connect(DATABASE_DB)
         cursor = conn.cursor()
         pattern = re.compile(r"\/images\/\d+\/([a-f0-9]+.*)")
@@ -87,12 +87,15 @@ def downloader(downloadList, site, downTag):
                         ok_count = ok_count + 1
                         currItems = currItems + 1
                         progress = str(currItems) + "/" + str(initItems)
-                        print(f'DOWNLOADED [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
+                        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                        print(f'[{timestamp}] DOWNLOADED [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
                     except Exception as e:
+                        conn.rollback()
                         err_count = err_count + 1
                         currItems = currItems + 1
-                        progress = str(currItems) + "/" + str(initItems)                  
-                        print(f'ERROR: {e} [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
+                        progress = str(currItems) + "/" + str(initItems)         
+                        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')         
+                        print(f'[{timestamp}] ERROR: {e} [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
 
                 elif result == 1:
                     cursor.execute("SELECT tags FROM {} WHERE file = ?".format(site), (file,))
@@ -110,13 +113,15 @@ def downloader(downloadList, site, downTag):
                         conn.commit()
                     cpd_count = cpd_count + 1
                     currItems = currItems + 1
-                    progress = str(currItems) + "/" + str(initItems)                   
-                    print(f'INHERITED [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
+                    progress = str(currItems) + "/" + str(initItems)     
+                    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')              
+                    print(f'[{timestamp}] INHERITED [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
                 else:
                     err_count = err_count + 1
                     currItems = currItems + 1
-                    progress = str(currItems) + "/" + str(initItems)                  
-                    print(f'ERROR [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
+                    progress = str(currItems) + "/" + str(initItems)  
+                    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')                
+                    print(f'[{timestamp}] ERROR [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
     except Exception as e:
         log(f'Process for tag "{tag}" failed with error: {e}')
         conn.rollback()

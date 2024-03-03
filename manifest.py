@@ -42,13 +42,17 @@ def collector(DIRECTORY):
 def file_insert(files_list, DATABASE_DB, site):
     conn = sqlite3.connect(DATABASE_DB)
     cursor = conn.cursor()
-    complete = 0
+    complete = 0 
+    iterNum = 0
+    iterCount = 0
     fileNum = len(files_list)
     print("Processing", fileNum, "files.")
 #    sql_query = "UPDATE ? SET tags = tags || ? WHERE file = ?"
 
     try:
         for file in files_list:
+            if iterNum == 0 and not conn.in_transaction:
+                conn.execute('BEGIN TRANSACTION') 
             file_name = os.path.basename(file)
             dir_path = os.path.dirname(file)
             tag = os.path.basename(dir_path)
@@ -61,16 +65,29 @@ def file_insert(files_list, DATABASE_DB, site):
             if result == 0:
                 cursor.execute("INSERT INTO {} (file, tags) VALUES (?, ?)".format(site), (file_name, tag))
                 complete = complete + 1
+                iterNum = iterNum + 1
+                if iterNum == 10000:
+                    iterNum = 0
+                    iterCount = iterCount + 1
+                    itercount = itercount * 10000
+                    print("Processed: ", iterCount)
+                    conn.commit()
             if existing_tags:
                 sep_tags = existing_tags[0].split(',')
                 if result == 1 and tag not in sep_tags:
                     add_tag = "," + tag
                     cursor.execute("UPDATE {} SET tags = tags || ? WHERE file = ?".format(site), (add_tag, file_name))
                     complete = complete + 1
-
-#    except Exception as e:
-#        print("error: ", e)
-#        conn.close()
+                    iterNum = iterNum + 1
+                    if iterNum == 10000:
+                        iterNum = 0
+                        iterCount = iterCount + 1
+                        itercount = itercount * 10000
+                        print("Processed: ", iterCount)                        
+                        conn.commit()
+    except Exception as e:
+        print("error: ", e)
+        conn.rollback()
     finally:
         print("Processed", complete, "entries.")
         conn.commit()

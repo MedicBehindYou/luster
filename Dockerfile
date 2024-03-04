@@ -14,4 +14,4 @@ RUN mkdir /config && mkdir /app/downloads && mv config.ini /config/config.ini
 
 RUN chmod 777 * -R && cd /config && chmod 777 * -R
 
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["python3", "-u", "/app/main.py"]

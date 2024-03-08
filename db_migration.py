@@ -94,7 +94,6 @@ def migrate():
             cursor.execute("UPDATE version SET version = ('1.0.0') WHERE id = 1")
 
             conn.commit()
-            conn.close()
             version = "1.0.0"
             log('DB upgraded from 0.0.0 to 1.0.0')
         if version == "1.0.0":
@@ -105,11 +104,9 @@ def migrate():
             cursor.execute("UPDATE version SET version = ('2.0.0') WHERE id = 1")
 
             conn.commit()
-            conn.close() 
             log('DB upgraded from 1.0.0 to 2.0.0')           
         else:
             log('No available migrations.')
-
     except sqlite3.Error as e:
         log("Error reading data from SQLite table:", e)
 

@@ -1,6 +1,6 @@
 # preskip.py
 #    luster
-#    Copyright (C) 2023  MedicBehindYou
+#    Copyright (C) 2024  MedicBehindYou
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -34,6 +34,8 @@ def preskip(downloadList, site, downTag):
     
     if site == 'rule34':
         rootPath = '/app/downloads/rule34/'
+    elif site == 'gelbooru':
+        rootPath = '/app/downloads/gelbooru/'
     tag = "+".join(downTag)
 
     tag = "~".join(downTag)

@@ -1,6 +1,6 @@
 # main.py
 #    luster
-#    Copyright (C) 2023  MedicBehindYou
+#    Copyright (C) 2024  MedicBehindYou
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ from uncensor import uncensor
 from db_migration import has_version_table, current_version, migrate
 from no_ai import no_ai
 from rule34 import rule34C
+from gelbooru import gelbooruC
 from manifest import collect
 from downloader import downloader
 from preskip import preskip
@@ -53,7 +54,7 @@ if not os.path.exists(DATABASE_DB):
 
 if not has_version_table(DATABASE_DB):
     migrate()
-if current_version() != "2.0.0":
+if current_version() != "2.1.0":
     migrateYN = input('DB is currently out of date. Run migration (y/n): ')
     if migrateYN == 'y' or migrateYN == 'Y':
         migrate()
@@ -153,9 +154,8 @@ try:
             connection.commit()
 
             cursor.execute("SELECT site FROM tags WHERE name = ?", row)
-            site = cursor.fetchone()
-            site = site[0]
-            print(site)
+            siteList = cursor.fetchone()
+            siteList = siteList[0]
 
         else:
             update_query = "UPDATE tags SET complete = 0 WHERE running != 1;"
@@ -165,12 +165,19 @@ try:
             break
         downTag = tag.split(',')      
         downTag = sorted(downTag)
+        downloadList = []
 
-        if site == 0:
-            site = "rule34"
-            downloadList = rule34C(downTag)
+        if siteList == 0:
+            sites = ["rule34", "gelbooru"]
+            for site in sites:
+                if site == 'rule34':
+                    result = rule34C(downTag)
+                    downloadList.extend(result)
+                if site == 'gelbooru':
+                    result = gelbooruC(downTag)
+                    downloadList.extend(result)
             downloadList = preskip(downloadList, site, downTag)
-            returnCode = downloader(downloadList, site, downTag)
+            returnCode = downloader(downloadList, downTag)
         else:
             log(f"Unknown site: {site}")
 

@@ -1,6 +1,6 @@
-# rule34.py
+# gelbooru.py
 #    luster
-#    Copyright (C) 2024  MedicBehindYou
+#    Copyright (C) 2024 MedicBehindYou
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -18,15 +18,15 @@
 import requests
 import json
 import os
+import re
 from urllib.parse import quote
-from logger import log
 
-def rule34C(downTag):
-    print("Starting Rule34 Collector.")
+def gelbooruC(downTag):
+    print("Starting Gelbooru Collector.")
     joined_tags = "+".join(downTag)
-    baseURL = "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index"
+    baseURL = "https://gelbooru.com/index.php?page=dapi&s=post&q=index"
     page = 0
-    site = "rule34"
+    site = "gelbooru"
     downloadList = []
     end = 0
     tag = "~".join(downTag)
@@ -41,9 +41,11 @@ def rule34C(downTag):
 
     dir_tag = tag
     tag = tag + "/"
-    tagPath = '/app/downloads/rule34/' + tag
+    tagPath = '/app/downloads/gelbooru/' + tag
     if not os.path.exists(tagPath):
-        os.makedirs(tagPath)
+        os.makedirs(tagPath)  
+    pattern = re.compile("""{'@attributes': {'limit': 100, 'offset': .*, 'count': .*}}""")  
+    endStat = 0
     while True:
         url = f"{baseURL}&tags={joined_tags}&pid={page}&json=1&limit=1000"
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
@@ -51,14 +53,18 @@ def rule34C(downTag):
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
                 data = response.json()
-                if str(data) == '[]':
+                end_match = re.search(pattern, str(data))
+                if end_match != None:
+                    endStat = end_match.group(1)
+                posts = data.get("post", [])
+                for post in posts:
+                    file_url = post.get('file_url')
+                    downloadList.append(file_url)                
+                if endStat != None and endStat != 0:
                     page = page + 1
                     print("Page", page, "is empty. Stopping Collection.")
                     end = 1
                     break                
-                for post in data:
-                    file_url = post.get('file_url')
-                    downloadList.append(file_url)
             else:
                 print(f"Error: {response.status_code}, {response.text}")
         except Exception as e:
@@ -71,6 +77,6 @@ def rule34C(downTag):
                 break
         finally:
             if end != 1:
-                print("Found up to 1000 posts on page", page, "of Rule34.")
+                print("Found up to 100 posts on page", page, "of Gelbooru.")
                 page = page + 1
     return downloadList

@@ -19,6 +19,7 @@ import config_loader
 import os
 import sqlite3
 import datetime
+import sys
 from logger import log
 
 
@@ -69,7 +70,7 @@ def file_insert(files_list, DATABASE_DB, site):
                 if iterNum == 10000:
                     iterNum = 0
                     iterCount = iterCount + 1
-                    itercount = itercount * 10000
+                    iterCount = iterCount * 10000
                     print("Processed: ", iterCount)
                     conn.commit()
             if existing_tags:
@@ -82,7 +83,7 @@ def file_insert(files_list, DATABASE_DB, site):
                     if iterNum == 10000:
                         iterNum = 0
                         iterCount = iterCount + 1
-                        itercount = itercount * 10000
+                        iterCount = iterCount * 10000
                         print("Processed: ", iterCount)                        
                         conn.commit()
     except Exception as e:
@@ -97,7 +98,11 @@ def file_insert(files_list, DATABASE_DB, site):
 def collect(site, DATABASE_DB):
     if site == "rule34":
         DIRECTORY = "/app/downloads/rule34"
-
+    elif site == "gelbooru":
+        DIRECTORY = "/app/downloads/rule34"
+    else:
+        print('Invalid site.')
+        sys.exit()
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     print("Creating list. Starting at: ", timestamp)
     files_list = collector(DIRECTORY)

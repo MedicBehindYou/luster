@@ -23,7 +23,7 @@ import sys
 config = config_loader.load_config()
 
 if config:
-    LOG_TXT = (config['Logger']['log_txt'])
+    LOG_TXT = (config['General']['log_txt'])
     LOG_SIZE = int(config['Logger']['log_size'])
 else:
     log('Configuration not loaded.')

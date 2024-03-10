@@ -42,9 +42,8 @@ config = config_loader.load_config()
 row_lock = threading.Lock()
 
 if config:
-    MAX_INACTIVITY_TIME = float(config['Main']['max_inactivity_time'])  # Convert to float
-    DATABASE_DB = (config['Import']['database_db'])
-    LOG_TXT = (config['Main']['log_txt'])    
+    DATABASE_DB = (config['General']['database_db'])
+    LOG_TXT = (config['General']['log_txt'])    
 else:
     log('Configuration not loaded.')
     sys.exit()
@@ -128,15 +127,6 @@ try:
     cursor = conn.cursor()
 
     log_file = open(LOG_TXT, 'a')
-
-    def inactivity_checker(process, tag):
-        while process.poll() is None:
-            current_time = time.time()
-            if current_time - subprocess_start_time > MAX_INACTIVITY_TIME:
-                log(f'Subprocess for tag "{tag}" closed due to inactivity.')
-                process.kill()
-                break
-            time.sleep(1)
 
     while True:
         returnCode = None

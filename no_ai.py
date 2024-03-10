@@ -23,7 +23,7 @@ from logger import log
 
 config = config_loader.load_config()
 if config:
-    DATABASE_DB = config['No_AI']['database_db']
+    DATABASE_DB = (config['General']['database_db'])
 else:
     log('Configuration not loaded.')
     sys.exit()

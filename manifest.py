@@ -27,8 +27,8 @@ config = config_loader.load_config()
 
 
 if config:
-    DATABASE_DB = (config['Manifest']['database_db'])
-    LOG_TXT = (config['Manifest']['log_txt'])    
+    DATABASE_DB = (config['General']['database_db'])
+    LOG_TXT = (config['General']['log_txt'])    
 else:
     log('Configuration not loaded.')
     sys.exit()

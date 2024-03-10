@@ -25,7 +25,7 @@ config = config_loader.load_config()
 
 if config:
     BACKUP_DIR = (config['Backup']['backup_dir'])
-    DATABASE_DB = (config['Backup']['database_db'])
+    DATABASE_DB = (config['General']['database_db'])
     BACKUP_RETENTION = int(config['Backup']['backup_retention'])
 else:
     log('Configuration not loaded.')

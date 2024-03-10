@@ -23,7 +23,7 @@ import config_loader
 config = config_loader.load_config()
 
 if config:
-    DATABASE_DB = (config['Import']['database_db'])
+    DATABASE_DB = (config['General']['database_db'])
     ENTRIES_TXT = (config['Import']['entries_txt'])
 else:
     log('Configuration not loaded.')

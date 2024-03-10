@@ -32,7 +32,7 @@ else:
 def setup_database():
     try:
         # Create or connect to the 'database.db' SQLite database file
-        conn = sqlite3.connect(DATABASE_DB)
+        conn = sqlite3.connect(DATABASE_DB, timeout=5)
         cursor = conn.cursor()
 
         # Create the 'tags' table with the specified columns

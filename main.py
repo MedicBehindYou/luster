@@ -123,7 +123,7 @@ if "-rev" in sys.argv or "--reverse" in sys.argv:
 try:
     create_backup()
 
-    conn = sqlite3.connect(DATABASE_DB)
+    conn = sqlite3.connect(DATABASE_DB, timeout=5)
 
     cursor = conn.cursor()
 

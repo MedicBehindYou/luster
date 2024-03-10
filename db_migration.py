@@ -32,7 +32,7 @@ else:
     sys.exit()
 
 def has_version_table(DATABASE_DB):
-    conn = sqlite3.connect(DATABASE_DB)
+    conn = sqlite3.connect(DATABASE_DB, timeout=5)
     cursor = conn.cursor()
 
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='version'")
@@ -44,7 +44,7 @@ def has_version_table(DATABASE_DB):
     return version_table_exists
 
 def current_version():
-    conn = sqlite3.connect(DATABASE_DB)
+    conn = sqlite3.connect(DATABASE_DB, timeout=5)
     cursor = conn.cursor()
 
     cursor.execute("SELECT version FROM version WHERE id = 1")
@@ -57,7 +57,7 @@ def migrate():
             create_backup()
             log(f'Creating new versions table: {DATABASE_DB}')
 
-            conn = sqlite3.connect(DATABASE_DB)
+            conn = sqlite3.connect(DATABASE_DB, timeout=5)
             cursor = conn.cursor()
 
 
@@ -81,7 +81,7 @@ def migrate():
         sys.exit()
 
     try:
-        conn = sqlite3.connect(DATABASE_DB)
+        conn = sqlite3.connect(DATABASE_DB, timeout=5)
         cursor = conn.cursor()
         # Execute a query to select the version from the version table
         cursor.execute("SELECT version FROM version WHERE id = 1")

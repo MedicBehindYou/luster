@@ -30,7 +30,7 @@ else:
     sys.exit()
 
 def preskip(downloadList, downTag):
-    conn = sqlite3.connect(DATABASE_DB)
+    conn = sqlite3.connect(DATABASE_DB, timeout=5)
     cursor = conn.cursor()
     
     tag = "+".join(downTag)

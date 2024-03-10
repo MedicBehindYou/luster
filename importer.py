@@ -32,7 +32,7 @@ else:
 def bulk_import_tags(filename):
     try:
 
-        conn = sqlite3.connect(DATABASE_DB)
+        conn = sqlite3.connect(DATABASE_DB, timeout=5)
         cursor = conn.cursor()
 
 
@@ -52,7 +52,7 @@ def bulk_import_tags(filename):
 def single_import(name):
     try:
 
-        conn = sqlite3.connect(DATABASE_DB)
+        conn = sqlite3.connect(DATABASE_DB, timeout=5)
         cursor = conn.cursor()
 
 

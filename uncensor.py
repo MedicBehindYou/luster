@@ -30,7 +30,7 @@ else:
 
 def uncensor(DATABASE_DB):
 
-    conn = sqlite3.connect(DATABASE_DB)
+    conn = sqlite3.connect(DATABASE_DB, timeout=5)
     cursor = conn.cursor()
 
     cursor.execute("SELECT name FROM tags")

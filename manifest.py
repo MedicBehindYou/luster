@@ -48,7 +48,6 @@ def file_insert(files_list, DATABASE_DB, site):
     iterCount = 0
     fileNum = len(files_list)
     print("Processing", fileNum, "files.")
-#    sql_query = "UPDATE ? SET tags = tags || ? WHERE file = ?"
 
     try:
         for file in files_list:
@@ -100,6 +99,8 @@ def collect(site, DATABASE_DB):
         DIRECTORY = "/app/downloads/rule34"
     elif site == "gelbooru":
         DIRECTORY = "/app/downloads/rule34"
+    elif site == "danbooru":
+        DIRECTORY = "/app/downloads/danbooru"
     else:
         print('Invalid site.')
         sys.exit()

@@ -48,6 +48,8 @@ def preskip(downloadList, downTag):
     dupeFiles = []
     filePattern = re.compile(r"\/([^\/]+)$")
     urlPattern = re.compile(r"https?://(?:[^./]+\.)?([^./]+)\.[^/]+/")
+    downloadList = list(filter(lambda x: x is not None, downloadList))
+
     initItems = len(downloadList)
     print("Intial list count is", initItems, ", starting preskip.")
     for file_url in downloadList:

@@ -66,6 +66,7 @@ def downloader(downloadList, downTag):
         urlPattern = re.compile(r"https?://(?:[^./]+\.)?([^./]+)\.[^/]+/")
 
         for file_url in downloadList:
+            downInstead = 0
             file_match = re.search(imagePattern, file_url)
             url_match = re.search(urlPattern, file_url)
             if file_match:
@@ -113,18 +114,33 @@ def downloader(downloadList, downTag):
                 source_path = rootPath + sep_tags[0] + "/" + file
 
                 destination = rootPath + tag + file
-                if not source_path == destination:
+                if source_path != destination and os.path.exists(source_path) and not os.path.exists(destination):
                         shutil.copyfile(source_path, destination)
+                elif not os.path.exists(destination):
+                    try:
+                        response = requests.get(file_url)
+                        with open(destination, 'wb') as f:
+                            f.write(response.content)
+                        downInstead = 1
+                    except Exception as e:
+                        print("Error line 119:", e)
                 if not dir_tag in sep_tags:
                     conn.execute('BEGIN TRANSACTION') 
                     add_tag = "," + dir_tag
                     cursor.execute("UPDATE {} SET tags = tags || ? WHERE file = ?".format(site), (add_tag, file))
                     conn.commit()
-                cpd_count = cpd_count + 1
-                currItems = currItems + 1
-                progress = str(currItems) + "/" + str(initItems)     
-                timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')              
-                print(f'[{timestamp}] INHERITED [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
+                if downInstead == 0:
+                    cpd_count = cpd_count + 1
+                    currItems = currItems + 1
+                    progress = str(currItems) + "/" + str(initItems)     
+                    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')              
+                    print(f'[{timestamp}] INHERITED [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
+                elif downInstead == 1:
+                    ok_count = ok_count + 1
+                    currItems = currItems + 1
+                    progress = str(currItems) + "/" + str(initItems)
+                    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    print(f'[{timestamp}] DOWNLOADED [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
             else:
                 err_count = err_count + 1
                 currItems = currItems + 1

@@ -33,6 +33,7 @@ from db_migration import has_version_table, current_version, migrate
 from no_ai import no_ai
 from rule34 import rule34C
 from gelbooru import gelbooruC
+from danbooru import danbooruC
 from manifest import collect
 from downloader import downloader
 from preskip import preskip
@@ -54,7 +55,7 @@ if not os.path.exists(DATABASE_DB):
 
 if not has_version_table(DATABASE_DB):
     migrate()
-if current_version() != "2.1.0":
+if current_version() != "2.2.0":
     migrateYN = input('DB is currently out of date. Run migration (y/n): ')
     if migrateYN == 'y' or migrateYN == 'Y':
         migrate()
@@ -168,7 +169,7 @@ try:
         downloadList = []
 
         if siteList == 0:
-            sites = ["rule34", "gelbooru"]
+            sites = ["rule34", "gelbooru", "danbooru"]            
             for site in sites:
                 if site == 'rule34':
                     result = rule34C(downTag)
@@ -176,7 +177,10 @@ try:
                 if site == 'gelbooru':
                     result = gelbooruC(downTag)
                     downloadList.extend(result)
-            downloadList = preskip(downloadList, site, downTag)
+                if site == 'danbooru':
+                    result = danbooruC(downTag)
+                    downloadList.extend(result)                    
+            downloadList = preskip(downloadList, downTag)
             returnCode = downloader(downloadList, downTag)
         else:
             log(f"Unknown site: {site}")

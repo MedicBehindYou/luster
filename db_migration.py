@@ -117,6 +117,15 @@ def migrate():
             version = "2.1.0"
             conn.commit()
             log('DB upgraded from 2.0.0 to 2.1.0')
+        if version == "2.1.0":
+            create_backup()
+            cursor.execute('''CREATE TABLE IF NOT EXISTS danbooru (file TEXT UNIQUE, tags TEXT);''')
+            cursor.execute('''CREATE INDEX IF NOT EXISTS danbooru_idx_file ON gelbooru (file);''')
+            cursor.execute("UPDATE version SET version = ('2.2.0') WHERE id = 1")     
+
+            version = "2.2.0"
+            conn.commit()
+            log('DB upgraded from 2.1.0 to 2.2.0')                       
         else:
             log('No available migrations.')
     except sqlite3.Error as e:

@@ -32,8 +32,8 @@ else:
 def setup_database():
     try:
         # Create or connect to the 'database.db' SQLite database file
-        connection = sqlite3.connect(DATABASE_DB)
-        cursor = connection.cursor()
+        conn = sqlite3.connect(DATABASE_DB)
+        cursor = conn.cursor()
 
         # Create the 'tags' table with the specified columns
         cursor.execute('''
@@ -45,9 +45,9 @@ def setup_database():
             )
         ''')
 
-        # Commit the changes and close the database connection
-        connection.commit()
-        connection.close()
+        # Commit the changes and close the database conn
+        conn.commit()
+        conn.close()
 
         log('Database setup completed.')
     except Exception as e:

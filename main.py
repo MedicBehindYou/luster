@@ -123,9 +123,9 @@ if "-rev" in sys.argv or "--reverse" in sys.argv:
 try:
     create_backup()
 
-    connection = sqlite3.connect(DATABASE_DB)
+    conn = sqlite3.connect(DATABASE_DB)
 
-    cursor = connection.cursor()
+    cursor = conn.cursor()
 
     log_file = open(LOG_TXT, 'a')
 
@@ -152,7 +152,7 @@ try:
             tag = row[0]
             log(f'Starting processing tag: {tag}')
             cursor.execute("UPDATE tags SET running = '1' WHERE name = ?", row)
-            connection.commit()
+            conn.commit()
 
             cursor.execute("SELECT site FROM tags WHERE name = ?", row)
             siteList = cursor.fetchone()
@@ -161,7 +161,7 @@ try:
         else:
             update_query = "UPDATE tags SET complete = 0 WHERE running != 1;"
             cursor.execute(update_query)
-            connection.commit()
+            conn.commit()
             log('All tags processed. Resetting for a new run.')
             break
         downTag = tag.split(',')      
@@ -191,29 +191,29 @@ try:
                 current_timestamp = datetime.now()
                 cursor.execute("UPDATE tags SET complete = 1, date = ? WHERE name = ?", (current_timestamp, tag))
                 cursor.execute("UPDATE tags SET running = '0' WHERE name = ?", row)
-                connection.commit()
+                conn.commit()
                 log(f'Tag "{tag}" processed successfully.')
             except Exception as e:
                 cursor.execute("ROLLBACK")
                 error_message = f'Error processing tag "{tag}": {e}'
                 log(error_message)
             else:
-                connection.commit()
+                conn.commit()
         elif returnCode == 1:
             with row_lock:
                 cursor.execute("UPDATE tags SET running = '0' WHERE name = ?", row)
-                connection.commit()
+                conn.commit()
         elif returnCode is not None:
             log(f'Subprocess for tag "{tag}" was terminated with return code: {returnCode}')    
         else:
             cursor.execute("UPDATE tags SET running = '0' WHERE name = ?", row)
-            connection.commit()
+            conn.commit()
 
 finally:
     if row is not None:
         cursor.execute("UPDATE tags SET running = '0' WHERE name = ?", row)
-        connection.commit()
+        conn.commit()
     manage_backups()
 
-    connection.close()
+    conn.close()
     log_file.close()

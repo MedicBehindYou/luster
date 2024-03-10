@@ -60,7 +60,7 @@ def migrate():
             conn = sqlite3.connect(DATABASE_DB)
             cursor = conn.cursor()
 
-            # Create the version table
+
             cursor.execute('''
                 CREATE TABLE version (
                     id INTEGER PRIMARY KEY,
@@ -68,10 +68,10 @@ def migrate():
                 )
             ''')
 
-            # Insert initial version data
+
             cursor.execute("INSERT INTO version (version) VALUES ('0.0.0')")
 
-            # Commit changes and close connection
+
             conn.commit()
             conn.close()
 

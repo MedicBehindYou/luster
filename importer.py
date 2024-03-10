@@ -32,8 +32,8 @@ else:
 def bulk_import_tags(filename):
     try:
 
-        connection = sqlite3.connect(DATABASE_DB)
-        cursor = connection.cursor()
+        conn = sqlite3.connect(DATABASE_DB)
+        cursor = conn.cursor()
 
 
         with open(filename, 'r') as file:
@@ -42,8 +42,8 @@ def bulk_import_tags(filename):
                 cursor.execute("INSERT INTO tags (name, date) VALUES (?, ?)", (entry, 'N/A'))
 
 
-        connection.commit()
-        connection.close()
+        conn.commit()
+        conn.close()
 
         log(f'Entries from "{filename}" imported successfully.')
     except Exception as e:
@@ -52,16 +52,16 @@ def bulk_import_tags(filename):
 def single_import(name):
     try:
 
-        connection = sqlite3.connect(DATABASE_DB)
-        cursor = connection.cursor()
+        conn = sqlite3.connect(DATABASE_DB)
+        cursor = conn.cursor()
 
 
         sanitized_name = name.strip().replace('"', '')  
         cursor.execute("INSERT INTO tags (name, date) VALUES (?, ?)", (sanitized_name, 'N/A'))
 
 
-        connection.commit()
-        connection.close()
+        conn.commit()
+        conn.close()
 
         log(f'Single entry "{sanitized_name}" imported successfully.')
     except Exception as e:

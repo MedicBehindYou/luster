@@ -70,8 +70,8 @@ def file_insert(files_list, DATABASE_DB, site):
                 if iterNum == 10000:
                     iterNum = 0
                     iterCount = iterCount + 1
-                    iterCount = iterCount * 10000
-                    print("Processed: ", iterCount)
+                    iterPrint = iterCount * 10000
+                    print("Processed: ", iterPrint)
                     conn.commit()
             if existing_tags:
                 sep_tags = existing_tags[0].split(',')
@@ -83,8 +83,8 @@ def file_insert(files_list, DATABASE_DB, site):
                     if iterNum == 10000:
                         iterNum = 0
                         iterCount = iterCount + 1
-                        iterCount = iterCount * 10000
-                        print("Processed: ", iterCount)                        
+                        iterPrint = iterCount * 10000
+                        print("Processed: ", iterPrint)                       
                         conn.commit()
     except Exception as e:
         print("error: ", e)

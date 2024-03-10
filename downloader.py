@@ -24,6 +24,7 @@ import shutil
 import os
 from logger import log
 import datetime
+import time
 
 config = config_loader.load_config()
 
@@ -61,7 +62,7 @@ def downloader(downloadList, downTag):
         cpd_count = 0
         conn = sqlite3.connect(DATABASE_DB)
         cursor = conn.cursor()
-        imagePattern = re.compile(r"\/images\/\d+\/([a-f0-9]+.*)")
+        imagePattern = re.compile(r"\/([^\/]+)$")
         urlPattern = re.compile(r"https?://(?:[^./]+\.)?([^./]+)\.[^/]+/")
 
         for file_url in downloadList:
@@ -75,6 +76,12 @@ def downloader(downloadList, downTag):
                     rootPath = '/app/downloads/rule34/'
                 elif site == 'gelbooru':
                     rootPath = '/app/downloads/gelbooru/'
+                elif site == 'donmai':
+                    site = "danbooru"
+                    rootPath = '/app/downloads/danbooru/'
+                    time.sleep(0.5)
+                else:
+                    print("Site match failed for", file_url)
             cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file,))
             result = cursor.fetchone()[0]     
             if result == 0:

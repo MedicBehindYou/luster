@@ -18,6 +18,7 @@
 import config_loader
 import sqlite3
 import re
+import time
 
 config = config_loader.load_config()
 
@@ -28,14 +29,10 @@ else:
     log('Configuration not loaded.')
     sys.exit()
 
-def preskip(downloadList, site, downTag):
+def preskip(downloadList, downTag):
     conn = sqlite3.connect(DATABASE_DB)
     cursor = conn.cursor()
     
-    if site == 'rule34':
-        rootPath = '/app/downloads/rule34/'
-    elif site == 'gelbooru':
-        rootPath = '/app/downloads/gelbooru/'
     tag = "+".join(downTag)
 
     tag = "~".join(downTag)
@@ -49,15 +46,27 @@ def preskip(downloadList, site, downTag):
         tag = tag.replace(char, replacement_char)
     
     dupeFiles = []
-    pattern = re.compile(r"\/images\/\d+\/([a-f0-9]+.*)")
+    filePattern = re.compile(r"\/([^\/]+)$")
+    urlPattern = re.compile(r"https?://(?:[^./]+\.)?([^./]+)\.[^/]+/")
     initItems = len(downloadList)
     print("Intial list count is", initItems, ", starting preskip.")
     for file_url in downloadList:
-
-        file_match = re.search(pattern, file_url)
-        if file_match:
+        file_match = re.search(filePattern, file_url)
+        url_match = re.search(urlPattern, file_url)
+        if file_match != None:
             file = file_match.group(1)
-
+        else:
+            print("Line 56 Preskip, file_match was None.")
+            time.sleep(5)
+        if url_match:
+            site = url_match.group(1)
+            if site == 'rule34':
+                rootPath = '/app/downloads/rule34/'
+            elif site == 'gelbooru':
+                rootPath = '/app/downloads/gelbooru/'
+            elif site == "donmai":
+                site = "danbooru"
+                rootpath = '/app/downloads/danbooru/'
             cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file,))
             result = cursor.fetchone()[0]
             cursor.execute("SELECT tags FROM {} WHERE file = ?".format(site), (file,))

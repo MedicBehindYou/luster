@@ -25,3 +25,38 @@ def load_config(config_file='/config/config.ini'):
         error_message = f'Error loading config: {e}'
         print(error_message)
         return None
+
+def create_config():
+    config = configparser.ConfigParser()
+
+    # General Section
+    config['General'] = {
+        'database_db': '/config/database.db',
+        'log_txt': '/config/log.txt'
+    }
+
+    # Main Section
+    config['Main'] = {
+        'max_inactivity_time': '6000'
+    }
+
+    # Backup Section
+    config['Backup'] = {
+        'backup_dir': '/config/backup/',
+        'database_db': '/config/database.db',
+        'backup_retention': '10'
+    }
+
+    # Import Section
+    config['Import'] = {
+        'entries_txt': '/config/entries.txt'
+    }
+
+    # Logger Section
+    config['Logger'] = {
+        'log_size': '1048576'
+    }
+
+    with open('/config/config.ini', 'w') as configfile:
+        config.write(configfile)
+

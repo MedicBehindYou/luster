@@ -14,14 +14,16 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import os
+import config_loader
+if not os.path.exists("/config/config.ini"):
+    config_loader.create_config()
 
 import sqlite3
 import subprocess
 import threading
 import time
 import sys
-import os
-import config_loader
 from datetime import datetime
 from logger import log
 from importer import bulk_import_tags, single_import
@@ -37,6 +39,8 @@ from danbooru import danbooruC
 from manifest import collect
 from downloader import downloader
 from preskip import preskip
+
+
 
 config = config_loader.load_config()
 row_lock = threading.Lock()

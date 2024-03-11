@@ -58,7 +58,22 @@ def rule34C(downTag):
                     break                
                 for post in data:
                     file_url = post.get('file_url')
-                    downloadList.append(file_url)
+                    if file_url is not None:
+                        downloadList.append(file_url)
+            elif response.status_code == 429:
+                time.sleep(20)
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    if str(data) == '[]':
+                        page = page + 1
+                        print("Page", page, "is empty. Stopping Collection.")
+                        end = 1
+                        break                
+                    for post in data:
+                        file_url = post.get('file_url')
+                        if file_url is not None:
+                            downloadList.append(file_url)                
             else:
                 print(f"Error: {response.status_code}, {response.text}")
         except Exception as e:

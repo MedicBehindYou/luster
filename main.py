@@ -171,7 +171,7 @@ try:
                 if site == 'gelbooru':
                     result = gelbooruC(downTag)
                     downloadList.extend(result)
-                if site == 'danbooru':
+                if site == 'danbooru' and not len(downTag) > 2:
                     result = danbooruC(downTag)
                     downloadList.extend(result)                    
             downloadList = preskip(downloadList, downTag)

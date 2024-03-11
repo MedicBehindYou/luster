@@ -19,6 +19,7 @@ import requests
 import json
 import os
 import re
+import time
 from urllib.parse import quote
 
 def gelbooruC(downTag):
@@ -59,12 +60,31 @@ def gelbooruC(downTag):
                 posts = data.get("post", [])
                 for post in posts:
                     file_url = post.get('file_url')
-                    downloadList.append(file_url)                
+                    if file_url is not None:
+                        downloadList.append(file_url)                
                 if endStat != None and endStat != 0:
                     page = page + 1
                     print("Page", page, "is empty. Stopping Collection.")
                     end = 1
-                    break                
+                    break 
+            elif response.status_code == 429:
+                time.sleep(20)
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    end_match = re.search(pattern, str(data))
+                    if end_match != None:
+                        endStat = end_match.group(1)
+                    posts = data.get("post", [])
+                    for post in posts:
+                        file_url = post.get('file_url')
+                        if file_url is not None:
+                            downloadList.append(file_url)                
+                    if endStat != None and endStat != 0:
+                        page = page + 1
+                        print("Page", page, "is empty. Stopping Collection.")
+                        end = 1
+                        break 
             else:
                 print(f"Error: {response.status_code}, {response.text}")
         except Exception as e:

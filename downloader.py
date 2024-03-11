@@ -29,8 +29,8 @@ import time
 config = config_loader.load_config()
 
 if config:
-    DATABASE_DB = (config['Manifest']['database_db'])
-    LOG_TXT = (config['Manifest']['log_txt'])    
+    DATABASE_DB = (config['General']['database_db'])
+    LOG_TXT = (config['General']['log_txt'])    
 else:
     log('Configuration not loaded.')
     sys.exit()
@@ -116,11 +116,12 @@ def downloader(downloadList, downTag):
                 destination = rootPath + tag + file
                 if source_path != destination and os.path.exists(source_path) and not os.path.exists(destination):
                         shutil.copyfile(source_path, destination)
-                elif not os.path.exists(destination):
+                elif not os.path.exists(destination) and not os.path.exists(source_path):
                     try:
                         response = requests.get(file_url)
                         with open(destination, 'wb') as f:
                             f.write(response.content)
+                        shutil.copyfile(destination, source_path)
                         downInstead = 1
                     except Exception as e:
                         print("Error line 119:", e)

@@ -79,4 +79,5 @@ def gelbooruC(downTag):
             if end != 1:
                 print("Found up to 100 posts on page", page, "of Gelbooru.")
                 page = page + 1
+    downloadList = list(filter(lambda x: x is not None, downloadList))
     return downloadList

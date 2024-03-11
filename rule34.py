@@ -73,4 +73,5 @@ def rule34C(downTag):
             if end != 1:
                 print("Found up to 1000 posts on page", page, "of Rule34.")
                 page = page + 1
+    downloadList = list(filter(lambda x: x is not None, downloadList))
     return downloadList

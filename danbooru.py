@@ -77,4 +77,5 @@ def danbooruC(downTag):
             if end != 1:
                 print("Found up to 200 posts on page", page, "of Danbooru.")
                 page = page + 1 
+    downloadList = list(filter(lambda x: x is not None, downloadList))
     return downloadList

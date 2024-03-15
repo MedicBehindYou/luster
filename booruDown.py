@@ -37,10 +37,9 @@ else:
 
 
 def downloader(downloadList, downTag):
-    e = "Couldn't possibly be a failure code"
-
+    e = 0
     try:
-        e = "Couldn't possibly be a failure code"
+        e = 0
 
         tag = "~".join(downTag)
         chars_to_replace = ['/', '<', '>', ':', '"', "\\", '|', '?', '*', '-', '(', ')']
@@ -152,7 +151,7 @@ def downloader(downloadList, downTag):
         log(f'Process for tag "{tag}" failed with error: {e}')
         conn.rollback()
     finally:
-        if e == "Couldn't possibly be a failure code":
+        if e == 0:
             print("Downloader Completed Successfully")
             return 0
         else:

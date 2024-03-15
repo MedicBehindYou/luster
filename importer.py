@@ -38,8 +38,14 @@ def bulk_import_tags(filename):
 
         with open(filename, 'r') as file:
             for line in file:
-                entry = line.strip().replace('"', '')
-                cursor.execute("INSERT INTO tags (name, date) VALUES (?, ?)", (entry, 'N/A'))
+                parts = line.strip().replace('"', '').split('|')
+                
+                tag = parts[0].strip()
+                if len(parts) > 1:
+                    site = int(parts[1].strip())
+                else:
+                    site = 0
+                cursor.execute("INSERT INTO tags (name, date, site) VALUES (?, ?, ?)", (tag, 'N/A', site))
 
 
         conn.commit()
@@ -49,7 +55,7 @@ def bulk_import_tags(filename):
     except Exception as e:
         log(f'Error bulk importing entries from "{filename}": {e}')
 
-def single_import(name):
+def single_import(name, siteNum: int = 0):
     try:
 
         conn = sqlite3.connect(DATABASE_DB, timeout=5)
@@ -57,15 +63,16 @@ def single_import(name):
 
 
         sanitized_name = name.strip().replace('"', '')  
-        cursor.execute("INSERT INTO tags (name, date) VALUES (?, ?)", (sanitized_name, 'N/A'))
+        cursor.execute("INSERT INTO tags (name, date, site) VALUES (?, ?, ?)", (sanitized_name, 'N/A', siteNum))
 
 
         conn.commit()
         conn.close()
 
-        log(f'Single entry "{sanitized_name}" imported successfully.')
+        log(f'Single entry "{sanitized_name}" with site "{siteNum}" imported successfully.')
     except Exception as e:
         log(f'Error importing single entry "{name}": {e}')
+    return
 
 if __name__ == "__main__":
     import_tags(ENTRIES_TXT)

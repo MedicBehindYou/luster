@@ -21,7 +21,7 @@ import os
 from urllib.parse import quote
 from logger import log
 
-def rule34C(downTag):
+def collector(downTag):
     print("Starting Rule34 Collector.")
     joined_tags = "+".join(downTag)
     baseURL = "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index"

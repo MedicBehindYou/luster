@@ -33,12 +33,11 @@ from organize import reorder_table
 from uncensor import uncensor
 from db_migration import has_version_table, current_version, migrate
 from no_ai import no_ai
-from rule34 import rule34C
-from gelbooru import gelbooruC
-from danbooru import danbooruC
+from collectors import rule34, gelbooru, danbooru
 from manifest import collect
-from downloader import downloader
 from preskip import preskip
+from luscious import api, utils, downloader
+import booruDown
 
 
 
@@ -82,14 +81,18 @@ if len(sys.argv) > 1 and sys.argv[1] == "--bulk":
         bulk_import_tags('/config/entries.txt') 
     sys.exit()    
 
-if len(sys.argv) > 1 and sys.argv[1] == "--single":
-    if len(sys.argv) > 2:
+if len(sys.argv) > 1 and sys.argv[1] == "--single" or len(sys.argv) > 1 and sys.argv[1] == "-s":
+    try:   
         create_backup()
-        single_import(sys.argv[2]) 
+        arg1 = sys.argv[2]
+        arg2 = sys.argv[3]
+        single_import(arg1, arg2)
         manage_backups()
-    else:
-        print("Usage: --single <tag_name>")
+    except:
+        print("Usage --single <tag> <siteNum> or -s <tag> <siteNum>")
     sys.exit()
+
+
 
 if len(sys.argv) > 1 and sys.argv[1] == "--organize":
     create_backup()
@@ -149,8 +152,8 @@ try:
             conn.commit()
 
             cursor.execute("SELECT site FROM tags WHERE name = ?", row)
-            siteList = cursor.fetchone()
-            siteList = siteList[0]
+            siteQuery = cursor.fetchone()
+            siteQuery = siteQuery[0]
 
         else:
             update_query = "UPDATE tags SET complete = 0 WHERE running != 1;"
@@ -162,20 +165,36 @@ try:
         downTag = sorted(downTag)
         downloadList = []
 
-        if siteList == 0:
+        if siteQuery == 0:
             sites = ["rule34", "gelbooru", "danbooru"]            
             for site in sites:
                 if site == 'rule34':
-                    result = rule34C(downTag)
+                    result = rule34.collector(downTag)
                     downloadList.extend(result)
                 if site == 'gelbooru':
-                    result = gelbooruC(downTag)
+                    result = gelbooru.collector(downTag)
                     downloadList.extend(result)
                 if site == 'danbooru' and not len(downTag) > 2:
-                    result = danbooruC(downTag)
+                    result = danbooru.collector(downTag)
                     downloadList.extend(result)                    
             downloadList = preskip(downloadList, downTag)
-            returnCode = downloader(downloadList, downTag)
+            returnCode = booruDown.downloader(downloadList, downTag)
+        elif siteQuery == 1: # Luscious artists
+            artist = tag.lower()
+            ids = api.luscious_artist_album_ids(artist)
+            for album_id in ids:
+                title = api.luscious_album_name(album_id)
+                picture_url_list = api.luscious_album_pictures(album_id)
+                album_folder = utils.format_foldername(title)
+                returnCode = downloader.download(title, picture_url_list, album_folder, tag)
+        elif siteQuery == 2:
+            tag = tag.lower()
+            ids = api.luscious_tag_search(tag)
+            for album_id in ids:
+                title = api.luscious_album_name(album_id)
+                picture_url_list = api.luscious_album_pictures(album_id)
+                album_folder = utils.format_foldername(title)
+                returnCode = downloader.download(title, picture_url_list, album_folder, tag)        
         else:
             log(f"Unknown site: {site}")
 

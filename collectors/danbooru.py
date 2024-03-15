@@ -1,6 +1,6 @@
-# gelbooru.py
+# danbooru.py
 #    luster
-#    Copyright (C) 2024 MedicBehindYou
+#    Copyright (C) 2024  MedicBehindYou
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -18,18 +18,21 @@
 import requests
 import json
 import os
-import re
-import time
 from urllib.parse import quote
+import time
 
-def gelbooruC(downTag):
-    print("Starting Gelbooru Collector.")
+def collector(downTag):
+    downloadList = [] 
+    end = 0               
+    if len(downTag) > 2:
+        print("Danbooru does not accept more than two tags, skipping.")
+        return
+        
+    print("Starting Danbooru Collector.")
     joined_tags = "+".join(downTag)
-    baseURL = "https://gelbooru.com/index.php?page=dapi&s=post&q=index"
-    page = 0
-    site = "gelbooru"
-    downloadList = []
-    end = 0
+    baseURL = "https://danbooru.donmai.us/posts.json?limit=1000"
+    page = 1
+    site = "danbooru"
     tag = "~".join(downTag)
     chars_to_replace = ['/', '<', '>', ':', '"', "\\", '|', '?', '*', '-', '(', ')']
     replacement_char = ''
@@ -42,51 +45,41 @@ def gelbooruC(downTag):
 
     dir_tag = tag
     tag = tag + "/"
-    tagPath = '/app/downloads/gelbooru/' + tag
+    tagPath = '/app/downloads/danbooru/' + tag
     if not os.path.exists(tagPath):
-        os.makedirs(tagPath)  
-    pattern = re.compile("""{'@attributes': {'limit': 100, 'offset': .*, 'count': .*}}""")  
-    endStat = 0
+        os.makedirs(tagPath)
     while True:
-        url = f"{baseURL}&tags={joined_tags}&pid={page}&json=1&limit=1000"
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
+        time.sleep(1)
+        url = f"{baseURL}&tags={joined_tags}&page={page}"
         try:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url)
             if response.status_code == 200:
                 data = response.json()
-                end_match = re.search(pattern, str(data))
-                if end_match != None:
-                    endStat = end_match.group(1)
-                posts = data.get("post", [])
-                for post in posts:
-                    file_url = post.get('file_url')
-                    if file_url is not None:
-                        downloadList.append(file_url)                
-                if endStat != None and endStat != 0:
+                if str(data) == '[]':
                     page = page + 1
                     print("Page", page, "is empty. Stopping Collection.")
                     end = 1
-                    break 
+                    break                
+                for post in data:
+                    file_url = post.get('file_url')
+                    if file_url is not None:
+                        downloadList.append(file_url)
             elif response.status_code == 429:
                 time.sleep(20)
-                response = requests.get(url, headers=headers)
+                response = requests.get(url)
                 if response.status_code == 200:
                     data = response.json()
-                    end_match = re.search(pattern, str(data))
-                    if end_match != None:
-                        endStat = end_match.group(1)
-                    posts = data.get("post", [])
-                    for post in posts:
-                        file_url = post.get('file_url')
-                        if file_url is not None:
-                            downloadList.append(file_url)                
-                    if endStat != None and endStat != 0:
+                    if str(data) == '[]':
                         page = page + 1
                         print("Page", page, "is empty. Stopping Collection.")
                         end = 1
-                        break 
+                        break                
+                    for post in data:
+                        file_url = post.get('file_url')
+                        if file_url is not None:
+                            downloadList.append(file_url)                
             else:
-                print(f"Error: {response.status_code}, {response.text}")
+                print(f"Error: {response.status_code}, {response.text}")                
         except Exception as e:
             if "Expecting value: line 1 column 1 (char 0)" in str(e):
                 print("End of pages")
@@ -97,7 +90,7 @@ def gelbooruC(downTag):
                 break
         finally:
             if end != 1:
-                print("Found up to 100 posts on page", page, "of Gelbooru.")
-                page = page + 1
+                print("Found up to 200 posts on page", page, "of Danbooru.")
+                page = page + 1 
     downloadList = list(filter(lambda x: x is not None, downloadList))
     return downloadList

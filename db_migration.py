@@ -125,7 +125,15 @@ def migrate():
 
             version = "2.2.0"
             conn.commit()
-            log('DB upgraded from 2.1.0 to 2.2.0')                       
+            log('DB upgraded from 2.1.0 to 2.2.0')  
+        if version == "2.2.0":
+            create_backup()
+            cursor.execute('''ALTER TABLE tags ADD COLUMN genre TEXT DEFAULT 0''')
+            cursor.execute("UPDATE version SET version = ('2.3.0') WHERE id = 1")     
+
+            version = "2.3.0"
+            conn.commit()
+            log('DB upgraded from 2.2.0 to 2.3.0')                      
         else:
             log('No available migrations.')
     except sqlite3.Error as e:

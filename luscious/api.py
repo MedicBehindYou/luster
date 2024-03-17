@@ -33,7 +33,7 @@ def luscious_album_pictures(album_id):
         page += 1
         response = requests.post(base_url, json=query)
         data = response.json()
-        picture_url_list.extend([picture['url_to_original'] for picture in data['data']['picture']['list']['items']])
+        picture_url_list.extend([(picture['position'], picture['url_to_original']) for picture in data['data']['picture']['list']['items']])
         if not data['data']['picture']['list']['info']['has_next_page']:
             break
     return picture_url_list

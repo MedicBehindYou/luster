@@ -182,19 +182,21 @@ try:
         elif siteQuery == 1: # Luscious artists
             artist = tag.lower()
             ids = api.luscious_artist_album_ids(artist)
+            folderType = 'artists'
             for album_id in ids:
                 title = api.luscious_album_name(album_id)
                 picture_url_list = api.luscious_album_pictures(album_id)
                 album_folder = utils.format_foldername(title)
-                returnCode = downloader.download(title, picture_url_list, album_folder, tag)
-        elif siteQuery == 2:
+                returnCode = downloader.download(title, picture_url_list, album_folder, tag, folderType)
+        elif siteQuery == 2: # Luscious tags
             tag = tag.lower()
             ids = api.luscious_tag_search(tag)
+            folderType = 'tags'
             for album_id in ids:
                 title = api.luscious_album_name(album_id)
                 picture_url_list = api.luscious_album_pictures(album_id)
                 album_folder = utils.format_foldername(title)
-                returnCode = downloader.download(title, picture_url_list, album_folder, tag)        
+                returnCode = downloader.download(title, picture_url_list, album_folder, tag, folderType)        
         else:
             log(f"Unknown site: {site}")
 

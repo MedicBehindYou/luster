@@ -128,6 +128,7 @@ def album_list_pictures_query(album_id: str, page_number: int) -> dict:
                 url_to_original
                 url_to_video
                 url
+                position
             }
         """,
         "variables": {
@@ -194,7 +195,7 @@ def album_info_query(album_id: str) -> dict:
     }
 
 
-def album_search_query(search_query: str, album_type: str, page: int, sorting: str = 'rating_all_time') -> dict:
+def album_search_query(search_query: str, album_type: str, page: int, genre_ids: str = '', sorting: str = 'rating_all_time') -> dict:
         """
         Build Album search query.
         :param search_query: keyword
@@ -279,6 +280,10 @@ def album_search_query(search_query: str, album_type: str, page: int, sorting: s
                                                 "name": "album_type",
                                                 "value": album_type
                                         },
+                                        {
+                                                "name": "genre_ids",
+                                                "value": genre_ids
+                                        },                                       
                                         {
                                                 "name": "tagged",
                                                 "value": search_query

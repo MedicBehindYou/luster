@@ -28,11 +28,12 @@ config = config_loader.load_config()
 
 if config:
     CONFIG_VERSION = (config['Version']['version'])
-    
+
 if not CONFIG_VERSION == '1.0.0':
     cfgupdateYN = input('Config is currently out of date. Run update (y/n): ')
     if cfgupdateYN == 'y' or cfgupdateYN == 'Y':
         config_updater.update_config(CONFIG_VERSION)
+        config = config_loader.load_config()
     elif cfgupdateYN == 'n' or cfgupdateYN == 'N':
         print('Update canceled, closing.')
         sys.exit()
@@ -65,7 +66,9 @@ row_lock = threading.Lock()
 
 if config:
     DATABASE_DB = (config['General']['database_db'])
-    LOG_TXT = (config['General']['log_txt'])    
+    LOG_TXT = (config['General']['log_txt'])  
+    LUSCIOUS_COOKIE_NAME = (config['Luscious']['cookie_name'])
+    LUSCIOUS_COOKIE_VALUE = (config['Luscious']['cookie_value'])       
 else:
     log('Configuration not loaded.')
     sys.exit()
@@ -76,7 +79,7 @@ if not os.path.exists(DATABASE_DB):
 
 if not has_version_table(DATABASE_DB):
     migrate()
-if current_version() != "2.2.0":
+if current_version() != "2.3.0":
     migrateYN = input('DB is currently out of date. Run migration (y/n): ')
     if migrateYN == 'y' or migrateYN == 'Y':
         migrate()
@@ -103,12 +106,23 @@ if len(sys.argv) > 1 and sys.argv[1] == "--bulk":
 if len(sys.argv) > 1 and sys.argv[1] == "--single" or len(sys.argv) > 1 and sys.argv[1] == "-s":
     try:   
         create_backup()
-        arg1 = sys.argv[2]
-        arg2 = sys.argv[3]
-        single_import(arg1, arg2)
+        if len(sys.argv) == 3:
+            arg1 = sys.argv[2]
+            single_import(arg1)
+        elif len(sys.argv) == 4:
+            arg1 = sys.argv[2]
+            arg2 = sys.argv[3]
+            single_import(arg1, arg2)
+        elif len(sys.argv) == 5:
+            arg1 = sys.argv[2]
+            arg2 = sys.argv[3]            
+            arg3 = sys.argv[4]
+            single_import(arg1, arg2, arg3)
+        else:
+            print("Usage --single <tag> <optional - siteNum> <optional(siteNum req.) genre> or -s <tag> < optional - siteNum> <optional(siteNum req.) genre>")
         manage_backups()
     except:
-        print("Usage --single <tag> <siteNum> or -s <tag> <siteNum>")
+        print("Usage --single <tag> <optional - siteNum> <optional(siteNum req.) genre> or -s <tag> < optional - siteNum> <optional(siteNum req.) genre>")
     sys.exit()
 
 
@@ -174,6 +188,10 @@ try:
             siteQuery = cursor.fetchone()
             siteQuery = siteQuery[0]
 
+            cursor.execute("SELECT genre FROM tags WHERE name = ?", row)
+            genreQuery = cursor.fetchone()
+            genre_ids = genreQuery[0]
+            
         else:
             update_query = "UPDATE tags SET complete = 0 WHERE running != 1;"
             cursor.execute(update_query)
@@ -209,13 +227,21 @@ try:
                 returnCode = downloader.download(title, picture_url_list, album_folder, tag, folderType)
         elif siteQuery == 2: # Luscious tags
             tag = tag.lower()
-            ids = api.luscious_tag_search(tag)
             folderType = 'tags'
-            for album_id in ids:
-                title = api.luscious_album_name(album_id)
-                picture_url_list = api.luscious_album_pictures(album_id)
-                album_folder = utils.format_foldername(title)
-                returnCode = downloader.download(title, picture_url_list, album_folder, tag, folderType)        
+            if genre_ids != '0':
+                ids = api.luscious_tag_search(tag, genre_ids)
+                for album_id in ids:
+                    title = api.luscious_album_name(album_id)
+                    picture_url_list = api.luscious_album_pictures(album_id)
+                    album_folder = utils.format_foldername(title)
+                    returnCode = downloader.download(title, picture_url_list, album_folder, tag, folderType) 
+            else:
+                ids = api.luscious_tag_search(tag)
+                for album_id in ids:
+                    title = api.luscious_album_name(album_id)
+                    picture_url_list = api.luscious_album_pictures(album_id)
+                    album_folder = utils.format_foldername(title)
+                    returnCode = downloader.download(title, picture_url_list, album_folder, tag, folderType)        
         else:
             log(f"Unknown site: {site}")
 

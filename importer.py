@@ -41,11 +41,16 @@ def bulk_import_tags(filename):
                 parts = line.strip().replace('"', '').split('|')
                 
                 tag = parts[0].strip()
-                if len(parts) > 1:
+                if len(parts) == 2:
                     site = int(parts[1].strip())
+                    genre = 'NULL'
+                elif len(parts) == 3:
+                    site = int(parts[1].strip())
+                    genre = int(parts[2].strip())
                 else:
                     site = 0
-                cursor.execute("INSERT INTO tags (name, date, site) VALUES (?, ?, ?)", (tag, 'N/A', site))
+                    genre = 'NULL'
+                cursor.execute("INSERT INTO tags (name, date, site, genre) VALUES (?, ?, ?, ?)", (tag, 'N/A', site, genre))
 
 
         conn.commit()
@@ -55,16 +60,15 @@ def bulk_import_tags(filename):
     except Exception as e:
         log(f'Error bulk importing entries from "{filename}": {e}')
 
-def single_import(name, siteNum: int = 0):
+def single_import(name, siteNum: int = 0, genre_ids: str = 0):
     try:
-
         conn = sqlite3.connect(DATABASE_DB, timeout=5)
         cursor = conn.cursor()
 
-
+        if isinstance(genre_ids, int):
+            genre_ids = str(genre_ids)
         sanitized_name = name.strip().replace('"', '')  
-        cursor.execute("INSERT INTO tags (name, date, site) VALUES (?, ?, ?)", (sanitized_name, 'N/A', siteNum))
-
+        cursor.execute("INSERT INTO tags (name, date, site, genre) VALUES (?, ?, ?, ?)", (sanitized_name, 'N/A', siteNum, genre_ids))
 
         conn.commit()
         conn.close()

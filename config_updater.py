@@ -12,7 +12,7 @@ def replace_version(old_version, new_version):
 
 def update_config(CONFIG_VERSION):
     if CONFIG_VERSION == '0.0.0':
-        newKeys = "\n\n[Luscious]\ngenre_ids = ''\nmax_pages = 5\n"
+        newKeys = "\n[Luscious]\ngenre_ids = ''\nmax_pages = 5\ncookie_name = ''\ncookie_value = ''\n"
         path = '/config/config.ini'
         with open(path, "a") as file:
             file.write(newKeys)

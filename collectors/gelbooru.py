@@ -48,6 +48,7 @@ def collector(downTag):
     pattern = re.compile("""{'@attributes': {'limit': 100, 'offset': .*, 'count': .*}}""")  
     endStat = 0
     while True:
+        postCount = 0
         url = f"{baseURL}&tags={joined_tags}&pid={page}&json=1&limit=1000"
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
         try:
@@ -61,6 +62,7 @@ def collector(downTag):
                 for post in posts:
                     file_url = post.get('file_url')
                     if file_url is not None:
+                        postCount += 1
                         downloadList.append(file_url)                
                 if endStat != None and endStat != 0:
                     page = page + 1
@@ -79,6 +81,7 @@ def collector(downTag):
                     for post in posts:
                         file_url = post.get('file_url')
                         if file_url is not None:
+                            postCount += 1
                             downloadList.append(file_url)                
                     if endStat != None and endStat != 0:
                         page = page + 1
@@ -97,7 +100,7 @@ def collector(downTag):
                 break
         finally:
             if end != 1:
-                print("Found up to 100 posts on page", page, "of Gelbooru.")
+                print(f"Found {postCount} posts on page {page} of Gelbooru.")
                 page = page + 1
     downloadList = list(filter(lambda x: x is not None, downloadList))
     return downloadList

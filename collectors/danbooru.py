@@ -49,6 +49,7 @@ def collector(downTag):
     if not os.path.exists(tagPath):
         os.makedirs(tagPath)
     while True:
+        postCount = 0
         time.sleep(1)
         url = f"{baseURL}&tags={joined_tags}&page={page}"
         try:
@@ -63,6 +64,7 @@ def collector(downTag):
                 for post in data:
                     file_url = post.get('file_url')
                     if file_url is not None:
+                        postCount += 1
                         downloadList.append(file_url)
             elif response.status_code == 429:
                 time.sleep(20)
@@ -77,7 +79,12 @@ def collector(downTag):
                     for post in data:
                         file_url = post.get('file_url')
                         if file_url is not None:
-                            downloadList.append(file_url)                
+                            postCount += 1
+                            downloadList.append(file_url)  
+            elif response.status_code == 410:
+                print(f'Danbooru does not support pages over 1000, ending search.')
+                end = 1
+                break
             else:
                 print(f"Error: {response.status_code}, {response.text}")                
         except Exception as e:
@@ -90,7 +97,7 @@ def collector(downTag):
                 break
         finally:
             if end != 1:
-                print("Found up to 200 posts on page", page, "of Danbooru.")
+                print(f"Found {postCount} posts on page {page} of Danbooru.")
                 page = page + 1 
     downloadList = list(filter(lambda x: x is not None, downloadList))
     return downloadList

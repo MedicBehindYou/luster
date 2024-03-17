@@ -45,6 +45,7 @@ def collector(downTag):
     if not os.path.exists(tagPath):
         os.makedirs(tagPath)
     while True:
+        postCount = 0
         url = f"{baseURL}&tags={joined_tags}&pid={page}&json=1&limit=1000"
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
         try:
@@ -58,6 +59,7 @@ def collector(downTag):
                     break                
                 for post in data:
                     file_url = post.get('file_url')
+                    postCount += 1
                     if file_url is not None:
                         downloadList.append(file_url)
             elif response.status_code == 429:
@@ -86,7 +88,7 @@ def collector(downTag):
                 break
         finally:
             if end != 1:
-                print("Found up to 1000 posts on page", page, "of Rule34.")
+                print(f"Found {postCount} posts on page {page} of Rule34.")
                 page = page + 1
     downloadList = list(filter(lambda x: x is not None, downloadList))
     return downloadList

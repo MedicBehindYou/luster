@@ -16,6 +16,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import configparser
+
+def add_version():
+    prepend_key = "[Version]\nversion = 0.0.0\n\n"
+    with open("/config/config.ini", "r") as file:
+        original_config = file.read()
+    new_config = prepend_key + original_config
+    with open("/config/config.ini", "w") as file:
+        file.write(new_config)
+    print('Added version key to config.ini')
+
+def check_config_entry(config, section, key):
+    if section in config and key in config[section]:
+        return True
+    else:
+        return False
+
 def load_config(config_file='/config/config.ini'):
     try:
         config = configparser.ConfigParser()

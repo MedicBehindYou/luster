@@ -16,8 +16,29 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import config_loader
+import config_updater
 if not os.path.exists("/config/config.ini"):
     config_loader.create_config()
+config = config_loader.load_config()
+
+if not config_loader.check_config_entry(config, 'Version', 'version'):
+    config_loader.add_version()
+
+config = config_loader.load_config()
+
+if config:
+    CONFIG_VERSION = (config['Version']['version'])
+    
+if not CONFIG_VERSION == '1.0.0':
+    cfgupdateYN = input('Config is currently out of date. Run update (y/n): ')
+    if cfgupdateYN == 'y' or cfgupdateYN == 'Y':
+        config_updater.update_config(CONFIG_VERSION)
+    elif cfgupdateYN == 'n' or cfgupdateYN == 'N':
+        print('Update canceled, closing.')
+        sys.exit()
+    else:
+        print('Invalid option.')
+        sys.exit()  
 
 import sqlite3
 import subprocess
@@ -40,8 +61,6 @@ from luscious import api, utils, downloader
 import booruDown
 
 
-
-config = config_loader.load_config()
 row_lock = threading.Lock()
 
 if config:

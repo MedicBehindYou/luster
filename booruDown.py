@@ -122,6 +122,7 @@ def downloader(downloadList, downTag):
                             f.write(response.content)
                         shutil.copyfile(destination, source_path)
                         downInstead = 1
+                        shutil.copyfile(destination, source_path)
                     except Exception as e:
                         print("Error line 119:", e)
                 if not dir_tag in sep_tags:
@@ -151,7 +152,7 @@ def downloader(downloadList, downTag):
         log(f'Process for tag "{tag}" failed with error: {e}')
         conn.rollback()
     finally:
-        if e == 0:
+        if e is not None and e == 0:
             print("Downloader Completed Successfully")
             return 0
         else:

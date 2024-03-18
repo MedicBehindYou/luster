@@ -59,7 +59,7 @@ def downloader(downloadList, downTag):
         ok_count = 0
         err_count = 0
         cpd_count = 0
-        conn = sqlite3.connect(DATABASE_DB, timeout=5)
+        conn = sqlite3.connect(DATABASE_DB, timeout=20)
         cursor = conn.cursor()
         imagePattern = re.compile(r"\/([^\/]+)$")
         urlPattern = re.compile(r"https?://(?:[^./]+\.)?([^./]+)\.[^/]+/")

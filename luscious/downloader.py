@@ -19,7 +19,7 @@ def luscious_download_pictures(picture_url: tuple, title, item: Path, folderType
         retry = 1
         response = requests.get(picture_url, stream=True, timeout=30)
         while response.status_code != 200 and retry <= retries:
-            response = requests.get(picture_url, stream=True, timeout=self.timeout)
+            response = requests.get(picture_url, stream=True, timeout=30)
             retry += 1
         if retry > retries:
             print(f'[ERROR] Retries reached for {picture_name}.')

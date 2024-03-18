@@ -162,7 +162,7 @@ if "-rev" in sys.argv or "--reverse" in sys.argv:
 try:
     create_backup()
 
-    conn = sqlite3.connect(DATABASE_DB, timeout=5)
+    conn = sqlite3.connect(DATABASE_DB, timeout=20)
 
     cursor = conn.cursor()
 
@@ -172,23 +172,24 @@ try:
         returnCode = None
         with row_lock:
             if reverse_mode:
-                cursor.execute('SELECT name FROM tags WHERE complete = 0 AND running <> 1 ORDER BY ROWID DESC LIMIT 1')
+                cursor.execute('SELECT name, id FROM tags WHERE complete = 0 AND running <> 1 ORDER BY ROWID DESC LIMIT 1')
             else:
-                cursor.execute('SELECT name FROM tags WHERE complete = 0 AND running <> 1 LIMIT 1')
+                cursor.execute('SELECT name, id FROM tags WHERE complete = 0 AND running <> 1 LIMIT 1')
             
             row = cursor.fetchone()
 
         if row:
             tag = row[0]
+            row_id = row[1]
             log(f'Starting processing tag: {tag}')
-            cursor.execute("UPDATE tags SET running = '1' WHERE name = ?", row)
+            cursor.execute("UPDATE tags SET running = '1' WHERE id = ?", (row_id,))
             conn.commit()
 
-            cursor.execute("SELECT site FROM tags WHERE name = ?", row)
+            cursor.execute("SELECT site FROM tags WHERE id = ?", (row_id,))
             siteQuery = cursor.fetchone()
             siteQuery = siteQuery[0]
 
-            cursor.execute("SELECT genre FROM tags WHERE name = ?", row)
+            cursor.execute("SELECT genre FROM tags WHERE id = ?", (row_id,))
             genreQuery = cursor.fetchone()
             genre_ids = genreQuery[0]
             
@@ -253,8 +254,8 @@ try:
         if returnCode == 0:
             try:
                 current_timestamp = datetime.now()
-                cursor.execute("UPDATE tags SET complete = 1, date = ? WHERE name = ?", (current_timestamp, tag))
-                cursor.execute("UPDATE tags SET running = '0' WHERE name = ?", row)
+                cursor.execute("UPDATE tags SET complete = 1, date = ? WHERE id = ?", (current_timestamp, (row_id,)))
+                cursor.execute("UPDATE tags SET running = '0' WHERE id = ?", (row_id,))
                 conn.commit()
                 log(f'Tag "{tag}" processed successfully.')
             except Exception as e:
@@ -265,17 +266,17 @@ try:
                 conn.commit()
         elif returnCode == 1:
             with row_lock:
-                cursor.execute("UPDATE tags SET running = '0' WHERE name = ?", row)
+                cursor.execute("UPDATE tags SET running = '0' WHERE id = ?", (row_id,))
                 conn.commit()
         elif returnCode is not None:
             log(f'Subprocess for tag "{tag}" was terminated with return code: {returnCode}')    
         else:
-            cursor.execute("UPDATE tags SET running = '0' WHERE name = ?", row)
+            cursor.execute("UPDATE tags SET running = '0' WHERE id = ?", (row_id,))
             conn.commit()
 
 finally:
     if row is not None:
-        cursor.execute("UPDATE tags SET running = '0' WHERE name = ?", row)
+        cursor.execute("UPDATE tags SET running = '0' WHERE id = ?", (row_id,))
         conn.commit()
     manage_backups()
 

@@ -35,24 +35,27 @@ def reorder_table(db_file):
 
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS "tags_new" (
-                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-                "name" TEXT,
-                "complete" INTEGER DEFAULT 0,
-                "date" INTEGER,
-                "running" INTEGER DEFAULT 0
+            "id"	INTEGER,
+            "name"	TEXT,
+            "complete"	INTEGER DEFAULT 0,
+            "date"	INTEGER,
+            "running"	INTEGER DEFAULT 0,
+            "site"	INTEGER DEFAULT 0,
+            "genre"	TEXT DEFAULT 0,
+            PRIMARY KEY("id" AUTOINCREMENT)
             )
         ''')
 
         cursor.execute('''
-            INSERT INTO "tags_new" ("name", "complete", "date", "running")
-            SELECT "name", "complete", "date", "running" FROM "tags"
+            INSERT INTO "tags_new" ("name", "complete", "date", "running", "site", "genre")
+            SELECT "name", "complete", "date", "running", "site", "genre" FROM "tags"
             WHERE "name" NOT LIKE '%uncensored%'
             ORDER BY "name" ASC
         ''')
 
         cursor.execute('''
-            INSERT INTO "tags_new" ("name", "complete", "date", "running")
-            SELECT "name", "complete", "date", "running" FROM "tags"
+            INSERT INTO "tags_new" ("name", "complete", "date", "running", "site", "genre")
+            SELECT "name", "complete", "date", "running", "site", "genre" FROM "tags"
             WHERE "name" LIKE '%uncensored%'
             ORDER BY "name" ASC
         ''')

@@ -32,7 +32,7 @@ else:
 def bulk_import_tags(filename):
     try:
 
-        conn = sqlite3.connect(DATABASE_DB, timeout=5)
+        conn = sqlite3.connect(DATABASE_DB, timeout=20)
         cursor = conn.cursor()
 
 
@@ -62,7 +62,7 @@ def bulk_import_tags(filename):
 
 def single_import(name, siteNum: int = 0, genre_ids: str = 0):
     try:
-        conn = sqlite3.connect(DATABASE_DB, timeout=5)
+        conn = sqlite3.connect(DATABASE_DB, timeout=20)
         cursor = conn.cursor()
 
         if isinstance(genre_ids, int):

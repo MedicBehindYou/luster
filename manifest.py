@@ -41,7 +41,7 @@ def collector(DIRECTORY):
     return files_list
 
 def file_insert(files_list, DATABASE_DB, site):
-    conn = sqlite3.connect(DATABASE_DB, timeout=5)
+    conn = sqlite3.connect(DATABASE_DB, timeout=20)
     cursor = conn.cursor()
     complete = 0 
     iterNum = 0

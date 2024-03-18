@@ -230,11 +230,15 @@ try:
             folderType = 'tags'
             if genre_ids != '0':
                 ids = api.luscious_tag_search(tag, genre_ids)
-                for album_id in ids:
-                    title = api.luscious_album_name(album_id)
-                    picture_url_list = api.luscious_album_pictures(album_id)
-                    album_folder = utils.format_foldername(title)
-                    returnCode = downloader.download(title, picture_url_list, album_folder, tag, folderType) 
+                if ids == []:
+                    print(f'No items returned for tag: {tag}')
+                    returnCode = 0
+                else:
+                    for album_id in ids:
+                        title = api.luscious_album_name(album_id)
+                        picture_url_list = api.luscious_album_pictures(album_id)
+                        album_folder = utils.format_foldername(title)
+                        returnCode = downloader.download(title, picture_url_list, album_folder, tag, folderType) 
             else:
                 ids = api.luscious_tag_search(tag)
                 for album_id in ids:

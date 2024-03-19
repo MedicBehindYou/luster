@@ -19,6 +19,7 @@ import sqlite3
 from datetime import datetime
 from logger import log  
 import config_loader
+import utilities
 
 config = config_loader.load_config()
 
@@ -50,10 +51,12 @@ def bulk_import_tags(filename):
                 else:
                     site = 0
                     genre = 'NULL'
+                utilities.acquire_lock(conn)
                 cursor.execute("INSERT INTO tags (name, date, site, genre) VALUES (?, ?, ?, ?)", (tag, 'N/A', site, genre))
+                conn.commit()
 
 
-        conn.commit()
+        
         conn.close()
 
         log(f'Entries from "{filename}" imported successfully.')
@@ -68,6 +71,7 @@ def single_import(name, siteNum: int = 0, genre_ids: str = 0):
         if isinstance(genre_ids, int):
             genre_ids = str(genre_ids)
         sanitized_name = name.strip().replace('"', '')  
+        utilities.acquire_lock(conn)
         cursor.execute("INSERT INTO tags (name, date, site, genre) VALUES (?, ?, ?, ?)", (sanitized_name, 'N/A', siteNum, genre_ids))
 
         conn.commit()

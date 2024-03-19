@@ -25,6 +25,7 @@ import os
 from logger import log
 import datetime
 import time
+import utilities
 
 config = config_loader.load_config()
 
@@ -81,7 +82,7 @@ def downloader(downloadList, downTag):
                     rootPath = '/app/downloads/danbooru/'
                     time.sleep(0.5)
                 else:
-                    print("Site match failed for", file_url)
+                    print("Site match failed for", file_url)    
             cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file,))
             result = cursor.fetchone()[0]     
             if result == 0:
@@ -90,7 +91,7 @@ def downloader(downloadList, downTag):
                     response = requests.get(file_url)
                     with open(destination, 'wb') as f:
                         f.write(response.content)
-                    conn.execute('BEGIN TRANSACTION') 
+                    utilities.acquire_lock(conn)
                     cursor.execute("INSERT INTO {} (file, tags) VALUES (?, ?)".format(site), (file, dir_tag))
                     conn.commit()
                     ok_count = ok_count + 1
@@ -107,7 +108,9 @@ def downloader(downloadList, downTag):
                     print(f'[{timestamp}] ERROR: {e} [Ok: {str(ok_count)} | Err: {str(err_count)} | Cpd: {str(cpd_count)}] [{progress}]: {file}')
 
             elif result == 1:
+                utilities.acquire_lock(conn)
                 cursor.execute("SELECT tags FROM {} WHERE file = ?".format(site), (file,))
+                conn.commit()
                 entry_tags = cursor.fetchone()
                 sep_tags = entry_tags[0].split(',')
                 source_path = rootPath + sep_tags[0] + "/" + file
@@ -126,8 +129,8 @@ def downloader(downloadList, downTag):
                     except Exception as e:
                         print("Error line 119:", e)
                 if not dir_tag in sep_tags:
-                    conn.execute('BEGIN TRANSACTION') 
                     add_tag = "," + dir_tag
+                    utilities.acquire_lock(conn)
                     cursor.execute("UPDATE {} SET tags = tags || ? WHERE file = ?".format(site), (add_tag, file))
                     conn.commit()
                 if downInstead == 0:

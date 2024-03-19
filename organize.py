@@ -18,6 +18,7 @@
 import sqlite3
 from logger import log
 import config_loader
+import utilities
 
 config = config_loader.load_config()
 
@@ -32,7 +33,7 @@ def reorder_table(db_file):
     try:
         conn = sqlite3.connect(db_file)
         cursor = conn.cursor()
-
+        utilities.acquire_lock(conn)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS "tags_new" (
             "id"	INTEGER,

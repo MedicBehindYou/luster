@@ -19,6 +19,7 @@ import config_loader
 import sqlite3
 import re
 import time
+import utilities
 
 config = config_loader.load_config()
 
@@ -69,9 +70,11 @@ def preskip(downloadList, downTag):
             elif site == "donmai":
                 site = "danbooru"
                 rootpath = '/app/downloads/danbooru/'
+            utilities.acquire_lock(conn)
             cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file,))
             result = cursor.fetchone()[0]
             cursor.execute("SELECT tags FROM {} WHERE file = ?".format(site), (file,))
+            conn.commit()
             existing_tags = cursor.fetchone()
             
             if existing_tags:

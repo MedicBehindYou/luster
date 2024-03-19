@@ -60,6 +60,7 @@ from manifest import collect
 from preskip import preskip
 from luscious import api, utils, downloader
 import booruDown
+import utilities
 
 
 row_lock = threading.Lock()
@@ -172,9 +173,13 @@ try:
         returnCode = None
         with row_lock:
             if reverse_mode:
+                utilities.acquire_lock(conn)
                 cursor.execute('SELECT name, id FROM tags WHERE complete = 0 AND running <> 1 ORDER BY ROWID DESC LIMIT 1')
+                conn.commit()
             else:
+                utilities.acquire_lock(conn)
                 cursor.execute('SELECT name, id FROM tags WHERE complete = 0 AND running <> 1 LIMIT 1')
+                conn.commit()
             
             row = cursor.fetchone()
 
@@ -182,9 +187,11 @@ try:
             tag = row[0]
             row_id = row[1]
             log(f'Starting processing tag: {tag}')
+            utilities.acquire_lock(conn)
             cursor.execute("UPDATE tags SET running = '1' WHERE id = ?", (row_id,))
             conn.commit()
 
+            utilities.acquire_lock(conn)
             cursor.execute("SELECT site FROM tags WHERE id = ?", (row_id,))
             siteQuery = cursor.fetchone()
             siteQuery = siteQuery[0]
@@ -192,8 +199,10 @@ try:
             cursor.execute("SELECT genre FROM tags WHERE id = ?", (row_id,))
             genreQuery = cursor.fetchone()
             genre_ids = genreQuery[0]
+            conn.commit()
             
         else:
+            utilities.acquire_lock(conn)
             update_query = "UPDATE tags SET complete = 0 WHERE running != 1;"
             cursor.execute(update_query)
             conn.commit()
@@ -253,6 +262,7 @@ try:
 
         if returnCode == 0:
             try:
+                utilities.acquire_lock(conn)
                 current_timestamp = datetime.now()
                 cursor.execute("UPDATE tags SET complete = 1, date = ? WHERE id = ?", (current_timestamp, (row_id,)))
                 cursor.execute("UPDATE tags SET running = '0' WHERE id = ?", (row_id,))
@@ -266,16 +276,19 @@ try:
                 conn.commit()
         elif returnCode == 1:
             with row_lock:
+                utilities.acquire_lock(conn)
                 cursor.execute("UPDATE tags SET running = '0' WHERE id = ?", (row_id,))
                 conn.commit()
         elif returnCode is not None:
             log(f'Subprocess for tag "{tag}" was terminated with return code: {returnCode}')    
         else:
+            utilities.acquire_lock(conn)
             cursor.execute("UPDATE tags SET running = '0' WHERE id = ?", (row_id,))
             conn.commit()
 
 finally:
     if row is not None:
+        utilities.acquire_lock(conn)
         cursor.execute("UPDATE tags SET running = '0' WHERE id = ?", (row_id,))
         conn.commit()
     manage_backups()

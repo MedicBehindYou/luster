@@ -20,6 +20,7 @@ import datetime
 import sys
 import config_loader
 from logger import log
+import utilities
 
 config = config_loader.load_config()
 if config:
@@ -32,8 +33,9 @@ def no_ai(DATABASE_DB):
 
     conn = sqlite3.connect(DATABASE_DB, timeout=20)
     cursor = conn.cursor()
-
+    utilities.acquire_lock(conn)
     cursor.execute("SELECT name FROM tags")
+    conn.commit()
     tags = cursor.fetchall()
 
     unique_tags = set()
@@ -54,9 +56,10 @@ def no_ai(DATABASE_DB):
 
     for tag in unique_tags:
         new_tag = tag + ',-ai_generated'
+        utilities.acquire_lock(conn)
         cursor.execute("INSERT INTO tags (name) VALUES (?)", (new_tag,))
+        conn.commit()
 
-    conn.commit()
 
     conn.close()
 

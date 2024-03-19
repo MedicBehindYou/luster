@@ -20,6 +20,7 @@ import datetime
 import sys
 import config_loader
 from logger import log
+import utilities
 
 config = config_loader.load_config()
 if config:
@@ -32,7 +33,6 @@ def uncensor(DATABASE_DB):
 
     conn = sqlite3.connect(DATABASE_DB, timeout=20)
     cursor = conn.cursor()
-
     cursor.execute("SELECT name FROM tags")
     tags = cursor.fetchall()
 
@@ -54,7 +54,9 @@ def uncensor(DATABASE_DB):
 
     for tag in unique_tags:
         new_tag = tag + ',uncensored'
+        utilities.acquire_lock(conn)
         cursor.execute("INSERT INTO tags (name) VALUES (?)", (new_tag,))
+        conn.commit()
 
     conn.commit()
 

@@ -31,11 +31,11 @@ else:
 
 def setup_database():
     try:
-        # Create or connect to the 'database.db' SQLite database file
+
         conn = sqlite3.connect(DATABASE_DB, timeout=20)
         cursor = conn.cursor()
 
-        # Create the 'tags' table with the specified columns
+
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS tags (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,14 +45,14 @@ def setup_database():
             )
         ''')
 
-        # Commit the changes and close the database conn
+
         conn.commit()
         conn.close()
 
         log('Database setup completed.')
     except Exception as e:
         log(f'Error setting up the database: {e}')
-        sys.exit(1)  # Exit with an error code if there was an error
+        sys.exit(1)  
 
 if __name__ == "__main__":
     setup_database()

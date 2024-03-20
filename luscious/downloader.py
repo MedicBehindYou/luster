@@ -14,20 +14,24 @@ def luscious_download_pictures(picture_url: tuple, title, item: Path, folderType
     albumClean = utils.format_foldername(title)
     base_path = Path(base_path)
     picture_path = Path.joinpath(base_path, folderType, item, albumClean, picture_name)
-    if not Path.exists(picture_path):
-        print(f'Starting download of {picture_name}.')
-        retry = 1
-        response = requests.get(picture_url, stream=True, timeout=30)
-        while response.status_code != 200 and retry <= retries:
+    try:
+        if not Path.exists(picture_path):
+            print(f'Starting download of {picture_name}.')
+            retry = 0
             response = requests.get(picture_url, stream=True, timeout=30)
-            retry += 1
-        if retry > retries:
-            print(f'[ERROR] Retries reached for {picture_name}.')
-            return
-        if len(response.content) > 0:
-            with picture_path.open('wb') as image:
-                image.write(response.content)
-                print(f'Download of {picture_name} completed.')
+            while response.status_code != 200 and retry <= retries:
+                response = requests.get(picture_url, stream=True, timeout=30)
+                retry += 1
+            if retry > retries:
+                print(f'[ERROR] Retries reached for {picture_name}.')
+                return
+            if len(response.content) > 0:
+                with picture_path.open('wb') as image:
+                    image.write(response.content)
+                    print(f'Download of {picture_name} completed.')
+    except Exception as e:
+        print(f'[ERROR] Download for {picture_name} failed: {e}')
+
 
 def download(title: str, picture_url_list: list[str], album_folder: Path, item: Path, folderType: Path, threads: int = 4, delay: int = 0) -> None:
     start_time = time.time()

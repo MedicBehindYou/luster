@@ -264,7 +264,7 @@ try:
             try:
                 utilities.acquire_lock(conn)
                 current_timestamp = datetime.now()
-                cursor.execute("UPDATE tags SET complete = 1, date = ? WHERE id = ?", (current_timestamp, (row_id,)))
+                cursor.execute("UPDATE tags SET complete = 1, date = ? WHERE id = ?", (current_timestamp, row_id))
                 cursor.execute("UPDATE tags SET running = '0' WHERE id = ?", (row_id,))
                 conn.commit()
                 log(f'Tag "{tag}" processed successfully.')

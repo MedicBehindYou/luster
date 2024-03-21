@@ -4,5 +4,6 @@ database.db
 __pycache__/
 planning
 entries.txt
-test.py 
+test.py
+test2.py
 luscious/test_*

@@ -17,4 +17,13 @@ def update_config(CONFIG_VERSION):
         with open(path, "a") as file:
             file.write(newKeys)
         replace_version("version = 0.0.0", "version = 1.0.0")
-        print('Config upgrade to 1.0.0')
+        print('Config upgraded to 1.0.0')
+        CONFIG_VERSION == '1.0.0'
+    if CONFIG_VERSION == '1.0.0':
+        newKeys = "\n[Nhentai]\ncookies = ''\nuser_agent = ''\n"
+        path = '/config/config.ini'
+        with open(path, "a") as file:
+            file.write(newKeys)
+        replace_version("version = 1.0.0", "version = 2.0.0")
+        print('Config upgraded to 2.0.0')    
+        CONFIG_VERSION == '2.0.0'    

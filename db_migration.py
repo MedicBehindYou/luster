@@ -133,7 +133,16 @@ def migrate():
 
             version = "2.3.0"
             conn.commit()
-            log('DB upgraded from 2.2.0 to 2.3.0')                      
+            log('DB upgraded from 2.2.0 to 2.3.0')  
+        if version == "2.3.0":
+            create_backup()
+            cursor.execute('''CREATE TABLE IF NOT EXISTS nhentai (album_id TEXT UNIQUE, tags TEXT);''')
+            cursor.execute('''CREATE INDEX IF NOT EXISTS nhentai_idx_album_id ON nhentai (album_id);''')
+            cursor.execute("UPDATE version SET version = ('2.4.0') WHERE id = 1") 
+
+            version = "2.4.0"
+            conn.commit()
+            log('DB upgraded from 2.3.0 to 2.4.0')              
         else:
             log('No available migrations.')
     except sqlite3.Error as e:

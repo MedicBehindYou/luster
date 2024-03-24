@@ -38,7 +38,7 @@ else:
 
 
 def downloader(downloadList, downTag):
-    e = 0
+    e = None
     try:
         e = 0
 

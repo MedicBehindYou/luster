@@ -17,6 +17,7 @@
 import os
 import config_loader
 import config_updater
+import sys
 if not os.path.exists("/config/config.ini"):
     config_loader.create_config()
 config = config_loader.load_config()
@@ -29,11 +30,13 @@ config = config_loader.load_config()
 if config:
     CONFIG_VERSION = (config['Version']['version'])
 
-if not CONFIG_VERSION == '1.0.0':
+if not CONFIG_VERSION == '2.0.0':
     cfgupdateYN = input('Config is currently out of date. Run update (y/n): ')
     if cfgupdateYN == 'y' or cfgupdateYN == 'Y':
         config_updater.update_config(CONFIG_VERSION)
         config = config_loader.load_config()
+        print('Please review/update any added values in your config.')
+        sys.exit()
     elif cfgupdateYN == 'n' or cfgupdateYN == 'N':
         print('Update canceled, closing.')
         sys.exit()
@@ -61,6 +64,7 @@ from preskip import preskip
 from luscious import api, utils, downloader
 import booruDown
 import utilities
+import nhentai
 
 
 row_lock = threading.Lock()
@@ -80,7 +84,7 @@ if not os.path.exists(DATABASE_DB):
 
 if not has_version_table(DATABASE_DB):
     migrate()
-if current_version() != "2.3.0":
+if current_version() != "2.4.0":
     migrateYN = input('DB is currently out of date. Run migration (y/n): ')
     if migrateYN == 'y' or migrateYN == 'Y':
         migrate()
@@ -256,6 +260,12 @@ try:
                     picture_url_list = api.luscious_album_pictures(album_id)
                     album_folder = utils.format_foldername(title)
                     returnCode = downloader.download(title, picture_url_list, album_folder, tag, folderType)        
+        elif siteQuery == 3:
+            tag = tag.lower()
+            nhentai_IDs = nhentai.api.fetch_albums(tag)
+            nhentai_IDs = nhentai.preskip.album_skip(nhentai_IDs, tag)
+            for album in nhentai_IDs:
+                returnCode = nhentai.downloader.album_downloader(album[1], album[2], album[0], tag)
         else:
             log(f"Unknown site: {site}")
 

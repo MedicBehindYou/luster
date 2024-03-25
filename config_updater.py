@@ -20,7 +20,7 @@ def update_config(CONFIG_VERSION):
         print('Config upgraded to 1.0.0')
         CONFIG_VERSION == '1.0.0'
     if CONFIG_VERSION == '1.0.0':
-        newKeys = "\n[Nhentai]\ncookies = ''\nuser_agent = ''\n"
+        newKeys = "\n[Nhentai]\ncookies = ''\nuser_agent = ''\nmax_page_cap = 10\n"
         path = '/config/config.ini'
         with open(path, "a") as file:
             file.write(newKeys)

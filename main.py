@@ -264,8 +264,11 @@ try:
             tag = tag.lower()
             nhentai_IDs = nhentai.api.fetch_albums(tag)
             nhentai_IDs = nhentai.preskip.album_skip(nhentai_IDs, tag)
-            for album in nhentai_IDs:
-                returnCode = nhentai.downloader.album_downloader(album[1], album[2], album[0], tag)
+            if nhentai_IDs == []:
+                returnCode = 0
+            else: 
+                for album in nhentai_IDs:
+                    returnCode = nhentai.downloader.album_downloader(album[1], album[2], album[0], tag)
         else:
             log(f"Unknown site: {site}")
 

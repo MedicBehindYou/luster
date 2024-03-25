@@ -15,10 +15,9 @@ def album_skip(nhentai_IDs, tag):
 
     conn = sqlite3.connect(DATABASE_DB, timeout=20)
     cursor = conn.cursor()
-    dupeAlbums = {}
+    dupeAlbums = []
     initItems = len(nhentai_IDs)
-    for album in nhentai_IDs:
-        album_id = album[1]
+    for album_name, album_id, media_id in nhentai_IDs:
         utilities.acquire_lock(conn)
         cursor.execute("SELECT EXISTS(SELECT 1 FROM nhentai WHERE album_id = ? LIMIT 1)", (album_id,))
         result = cursor.fetchone()[0]
@@ -28,7 +27,7 @@ def album_skip(nhentai_IDs, tag):
         if existing_tags:
             sep_tags = existing_tags[0].split(',')
             if result == 1 and tag in sep_tags:
-                dupeAlbums.append(album)
+                dupeAlbums.append((album_name, album_id, media_id))
     for album in dupeAlbums:
         nhentai_IDs.remove(album)
     finalItems = len(nhentai_IDs)

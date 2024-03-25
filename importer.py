@@ -50,7 +50,7 @@ def bulk_import_tags(filename):
                     genre = int(parts[2].strip())
                 else:
                     site = 0
-                    genre = 'NULL'
+                    genre = 0
                 utilities.acquire_lock(conn)
                 cursor.execute("INSERT INTO tags (name, date, site, genre) VALUES (?, ?, ?, ?)", (tag, 'N/A', site, genre))
                 conn.commit()

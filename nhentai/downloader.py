@@ -65,6 +65,7 @@ def page_downloader(album_id: str, page: str, name: str, tag: str, media_id: str
     file_path = Path.joinpath(base_path, tag, album_folder, file_name)
     while len(str(file_path)) > 256:
         file_path = file_path[:-1]
+    file_path = Path(file_path)
     try:
         if not Path.exists(file_path):  
             print(f'Starting download of {album_folder} / {file_name}.')

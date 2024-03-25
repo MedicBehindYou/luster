@@ -12,6 +12,7 @@ def fetch_albums(tag: str, sort: str = 'all_time'):
         LOG_TXT = (config['General']['log_txt'])  
         cookies = (config['Nhentai']['cookies'])  
         USER_AGENT = (config['Nhentai']['user_agent'])  
+        max_page_cap = (config['Nhentai']['max_page_cap']) 
     else:
         log('Configuration not loaded.')
         sys.exit()
@@ -27,5 +28,7 @@ def fetch_albums(tag: str, sort: str = 'all_time'):
             break
         for album in data['result']:
             nhentai_IDs.append((album['title']['pretty'], album['id'], album['media_id']))
+            if int(max_page_cap) <= page:
+                break
         page += 1
     return nhentai_IDs

@@ -14,8 +14,10 @@ def luscious_download_pictures(picture_url: tuple, title, item: Path, folderType
     albumClean = utils.format_foldername(title)
     base_path = Path(base_path)
     picture_path = Path.joinpath(base_path, folderType, item, albumClean, picture_name)
+    picture_path = str(picture_path)
     while len(str(picture_path)) > 256:
         picture_path = picture_path[:-1]
+    picture_path = Path(picture_path)
     try:
         if not Path.exists(picture_path):
             print(f'Starting download of {picture_name}.')

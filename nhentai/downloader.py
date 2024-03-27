@@ -35,7 +35,7 @@ def album_page_query(album_id):
         i+=1
     return pages
 
-def page_downloader(album_id: str, page: str, name: str, tag: str, media_id: str, base_path: Path = '/app/downloads/nhentai', retries: int = 5):
+def page_downloader(album_id: str, page: str, name: str, tag: str, media_id: str, album_folder:str, base_path: Path = '/app/downloads/nhentai', retries: int = 5):
     config = config_loader.load_config()
     if config:
         DATABASE_DB = (config['General']['database_db'])
@@ -60,12 +60,7 @@ def page_downloader(album_id: str, page: str, name: str, tag: str, media_id: str
     file_name = str(page_num) + str(ext)
     query = f'https://i.nhentai.net/galleries/{media_id}/{file_name}'
     base_path = Path(base_path)
-    album_id = str(album_id)
-    album_folder = '[' + album_id + '] ' + name
     file_path = Path.joinpath(base_path, tag, album_folder, file_name)
-    while len(str(file_path)) > 256:
-        file_path = file_path[:-1]
-    file_path = Path(file_path)
     try:
         if not Path.exists(file_path):  
             print(f'Starting download of {album_folder} / {file_name}.')
@@ -95,10 +90,17 @@ def album_downloader(album_id: str, media_id: str, name:str, tag: str, threads: 
 
     conn = sqlite3.connect(DATABASE_DB, timeout=20)
     cursor = conn.cursor()
-
-    pages = album_page_query(album_id)
+    try:
+        pages = album_page_query(album_id)
+    except Exception as e:
+        print(f'Failed to grab info for {name}.')
+        return
     album_id = str(album_id)
     album_folder = '[' + album_id + '] ' + name
+    album_folder = str(album_folder)
+    while len(album_folder) > 172:
+        album_folder = album_folder[:-1]   
+    album_folder = Path(album_folder)    
     utilities.acquire_lock(conn)
     cursor.execute("SELECT EXISTS(SELECT 1 FROM nhentai WHERE album_id = ? LIMIT 1)", (album_id,))  
     conn.commit()
@@ -108,7 +110,7 @@ def album_downloader(album_id: str, media_id: str, name:str, tag: str, threads: 
         start_time = time.time()
         print(f'Starting doujin {name} with a total of {len(pages)} pages.')
         pool = mp.Pool(threads)
-        pool.starmap(page_downloader, zip(repeat(album_id), pages, repeat(name), repeat(tag), repeat(media_id)))
+        pool.starmap(page_downloader, zip(repeat(album_id), pages, repeat(name), repeat(tag), repeat(media_id), repeat(album_folder)))
         end_time = time.time()
         print(f'Finished {name} in {time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))}')
         utilities.acquire_lock(conn)
@@ -120,8 +122,8 @@ def album_downloader(album_id: str, media_id: str, name:str, tag: str, threads: 
         conn.commit()
         album_tags = cursor.fetchone()
         sep_tags = album_tags[0].split(',')
-        source_path = '/app/downloads/nhentai/' + sep_tags[0] + "/" + album_folder
-        link_path = '/app/downloads/nhentai/' + tag + "/" + album_folder
+        source_path = '/app/downloads/nhentai/' + sep_tags[0] + "/" + str(album_folder)
+        link_path = '/app/downloads/nhentai/' + tag + "/" + str(album_folder)
         if source_path != link_path:
             for root, dirs, files in os.walk(source_path):
                 for file in files:

@@ -5,19 +5,14 @@ from itertools import repeat
 import multiprocessing as mp
 import requests
 
-def luscious_download_pictures(picture_url: tuple, title, item: Path, folderType: Path, retries: int = 5, base_path: Path = '/app/downloads/luscious'):
+def luscious_download_pictures(picture_url: tuple, title, item: Path, folderType: Path, album_folder: Path, retries: int = 5, base_path: Path = '/app/downloads/luscious'):
     position, picture_url = picture_url
     picture_url = utils.normalize_url(picture_url)
     picture_name = picture_url.rsplit('/', 1)[1]
     position_str = str(position).zfill(5)
     picture_name = position_str + '-' + picture_name
-    albumClean = utils.format_foldername(title)
     base_path = Path(base_path)
-    picture_path = Path.joinpath(base_path, folderType, item, albumClean, picture_name)
-    picture_path = str(picture_path)
-    while len(str(picture_path)) > 256:
-        picture_path = picture_path[:-1]
-    picture_path = Path(picture_path)
+    picture_path = Path.joinpath(base_path, folderType, item, album_folder, picture_name)
     try:
         if not Path.exists(picture_path):
             print(f'Starting download of {picture_name}.')
@@ -39,10 +34,14 @@ def luscious_download_pictures(picture_url: tuple, title, item: Path, folderType
 
 def download(title: str, picture_url_list: list[str], album_folder: Path, item: Path, folderType: Path, threads: int = 4, delay: int = 0) -> None:
     start_time = time.time()
+    album_folder = str(album_folder)
+    while len(album_folder) > 172:
+        album_folder = album_folder[:-1]
+    album_folder = Path(album_folder)
     utils.create_folder(folderType, album_folder, item)
     print(f'Starting album {title} with a total of {len(picture_url_list)} images.')
     pool = mp.Pool(threads)
-    pool.starmap(luscious_download_pictures, zip(picture_url_list, repeat(title), repeat(item), repeat(folderType)))
+    pool.starmap(luscious_download_pictures, zip(picture_url_list, repeat(title), repeat(item), repeat(folderType), repeat(album_folder)))
     end_time = time.time()
     print(f'Finished {title} in {time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))}')
     if delay:

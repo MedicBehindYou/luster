@@ -12,6 +12,8 @@ def normalize_url(picture_url: str) -> str:
 def format_foldername(title) -> str:
 
   album_name = re.sub(r'[^\w\-_\. ]', '_', title)
+  pattern = re.compile(r'[^a-zA-Z\s{}[\]_-]')
+  album_name = re.sub(pattern, '', album_name)
   return album_name
 
 def create_folder(folderType: Path, item: Path, directory: Path, base_path: Path = '/app/downloads/luscious') -> None:

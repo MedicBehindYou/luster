@@ -229,7 +229,8 @@ try:
                     result = danbooru.collector(downTag)
                     downloadList.extend(result)                    
             downloadList = preskip(downloadList, downTag)
-            returnCode = booruDown.downloader(downloadList, downTag)
+            booruDown.downloader(downloadList, downTag)
+            returnCode = 0
         elif siteQuery == 1: # Luscious artists
             artist = tag.lower()
             ids = api.luscious_artist_album_ids(artist)
@@ -238,7 +239,8 @@ try:
                 title = api.luscious_album_name(album_id)
                 picture_url_list = api.luscious_album_pictures(album_id)
                 album_folder = utils.format_foldername(title)
-                returnCode = downloader.download(title, picture_url_list, album_folder, tag, folderType)
+                downloader.download(title, picture_url_list, album_folder, tag, folderType)
+            returnCode = 0
         elif siteQuery == 2: # Luscious tags
             tag = tag.lower()
             folderType = 'tags'
@@ -252,14 +254,16 @@ try:
                         title = api.luscious_album_name(album_id)
                         picture_url_list = api.luscious_album_pictures(album_id)
                         album_folder = utils.format_foldername(title)
-                        returnCode = downloader.download(title, picture_url_list, album_folder, tag, folderType) 
+                        downloader.download(title, picture_url_list, album_folder, tag, folderType) 
+                    returnCode = 0
             else:
                 ids = api.luscious_tag_search(tag)
                 for album_id in ids:
                     title = api.luscious_album_name(album_id)
                     picture_url_list = api.luscious_album_pictures(album_id)
                     album_folder = utils.format_foldername(title)
-                    returnCode = downloader.download(title, picture_url_list, album_folder, tag, folderType)        
+                    downloader.download(title, picture_url_list, album_folder, tag, folderType)     
+                returnCode = 0   
         elif siteQuery == 3:
             tag = tag.lower()
             nhentai_IDs = nhentai.api.fetch_albums(tag)
@@ -269,6 +273,7 @@ try:
             else: 
                 for album in nhentai_IDs:
                     returnCode = nhentai.downloader.album_downloader(album[1], album[2], album[0], tag)
+                returnCode = 0
         else:
             log(f"Unknown site: {site}")
 

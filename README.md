@@ -14,7 +14,7 @@ Luster supports or plans to support the following sites for collection:
 | Yandere | Planned | Tag |
 | Xbooru | Planned | Tag |
 | Pixiv | Planned | ??? |
-| nHentai | Planned | Album/Tag |
+| nHentai | Yes | Album/Tag |
 | FAKKU | Planned | Album |
 | E-Hentai | Planned | Album |
 | Luscious | Yes | Artist/Tag/Album |

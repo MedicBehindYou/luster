@@ -62,6 +62,8 @@ def image_downloader(file_url, tag, dir_tag, initItems, ok_count, cpd_count, err
                 site = "danbooru"
                 rootPath = '/app/downloads/danbooru/'
                 time.sleep(0.5)
+            elif site == 'xbooru':
+                rootPath = '/app/downloads/xbooru/'
             else:
                 print("Site match failed for", file_url)    
         cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file,))

@@ -70,6 +70,8 @@ def booruSkip(downloadList, downTag):
             elif site == "donmai":
                 site = "danbooru"
                 rootpath = '/app/downloads/danbooru/'
+            elif site == 'xbooru':
+                rootpath = '/app/downloads/xbooru/'
             misc.utilities.acquire_lock(conn)
             cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file,))
             result = cursor.fetchone()[0]

@@ -1,16 +1,16 @@
 import sqlite3
-import config_loader
-import utilities
+import config_utils
+import misc
 
 
 def album_skip(nhentai_IDs, tag):
-    config = config_loader.load_config()
+    config = config_utils.config_loader.load_config()
     if config:
         DATABASE_DB = (config['General']['database_db'])
         LOG_TXT = (config['General']['log_txt'])  
    
     else:
-        log('Configuration not loaded.')
+        misc.logger.log('Configuration not loaded.')
         sys.exit()
 
     conn = sqlite3.connect(DATABASE_DB, timeout=20)
@@ -18,7 +18,7 @@ def album_skip(nhentai_IDs, tag):
     dupeAlbums = []
     initItems = len(nhentai_IDs)
     for album_name, album_id, media_id in nhentai_IDs:
-        utilities.acquire_lock(conn)
+        misc.utilities.acquire_lock(conn)
         cursor.execute("SELECT EXISTS(SELECT 1 FROM nhentai WHERE album_id = ? LIMIT 1)", (album_id,))
         result = cursor.fetchone()[0]
         cursor.execute("SELECT tags FROM nhentai WHERE album_id = ?", (album_id,))

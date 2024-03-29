@@ -1,12 +1,12 @@
 import requests
-import config_loader
+import config_utils
 import json
 import time
 
 def fetch_albums(tag: str, sort: str = 'all_time'):
     page = 1
     nhentai_IDs = []
-    config = config_loader.load_config()
+    config = config_utils.config_loader.load_config()
     if config:
         DATABASE_DB = (config['General']['database_db'])
         LOG_TXT = (config['General']['log_txt'])  
@@ -14,7 +14,7 @@ def fetch_albums(tag: str, sort: str = 'all_time'):
         USER_AGENT = (config['Nhentai']['user_agent'])  
         max_page_cap = (config['Nhentai']['max_page_cap']) 
     else:
-        log('Configuration not loaded.')
+        misc.logger.log('Configuration not loaded.')
         sys.exit()
     cookies = json.loads(cookies)
     headers = {'User-Agent': USER_AGENT}

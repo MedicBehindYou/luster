@@ -4,22 +4,22 @@ from nhentai import utils
 from itertools import repeat
 import multiprocessing as mp
 import time
-import config_loader
+import config_utils
 import sqlite3
-import utilities
+import misc
 import json
 import os
 
 
 def album_page_query(album_id):
-    config = config_loader.load_config()
+    config = config_utils.config_loader.load_config()
     if config:
         DATABASE_DB = (config['General']['database_db'])
         LOG_TXT = (config['General']['log_txt'])  
         cookies = (config['Nhentai']['cookies'])  
         USER_AGENT = (config['Nhentai']['user_agent'])  
     else:
-        log('Configuration not loaded.')
+        misc.logger.log('Configuration not loaded.')
         sys.exit()
     cookies = json.loads(cookies)
     headers = {'User-Agent': USER_AGENT}
@@ -36,14 +36,14 @@ def album_page_query(album_id):
     return pages
 
 def page_downloader(album_id: str, page: str, name: str, tag: str, media_id: str, album_folder:str, base_path: Path = '/app/downloads/nhentai', retries: int = 5):
-    config = config_loader.load_config()
+    config = config_utils.config_loader.load_config()
     if config:
         DATABASE_DB = (config['General']['database_db'])
         LOG_TXT = (config['General']['log_txt'])  
         cookies = (config['Nhentai']['cookies'])  
         USER_AGENT = (config['Nhentai']['user_agent'])  
     else:
-        log('Configuration not loaded.')
+        misc.logger.log('Configuration not loaded.')
         sys.exit()
     cookies = json.loads(cookies)
     headers = {'User-Agent': USER_AGENT}    
@@ -80,12 +80,12 @@ def page_downloader(album_id: str, page: str, name: str, tag: str, media_id: str
         print(f'[ERROR] Download for {file_name} failed: {e}')
 
 def album_downloader(album_id: str, media_id: str, name:str, tag: str, threads: int = 4, delay: int = 0):
-    config = config_loader.load_config()
+    config = config_utils.config_loader.load_config()
     if config:
         DATABASE_DB = (config['General']['database_db'])
         LOG_TXT = (config['General']['log_txt'])      
     else:
-        log('Configuration not loaded.')
+        misc.logger.log('Configuration not loaded.')
         sys.exit()
 
     conn = sqlite3.connect(DATABASE_DB, timeout=20)
@@ -101,7 +101,7 @@ def album_downloader(album_id: str, media_id: str, name:str, tag: str, threads: 
     while len(album_folder) > 172:
         album_folder = album_folder[:-1]   
     album_folder = Path(album_folder)    
-    utilities.acquire_lock(conn)
+    misc.utilities.acquire_lock(conn)
     cursor.execute("SELECT EXISTS(SELECT 1 FROM nhentai WHERE album_id = ? LIMIT 1)", (album_id,))  
     conn.commit()
     result = cursor.fetchone()[0] 
@@ -113,11 +113,11 @@ def album_downloader(album_id: str, media_id: str, name:str, tag: str, threads: 
         pool.starmap(page_downloader, zip(repeat(album_id), pages, repeat(name), repeat(tag), repeat(media_id), repeat(album_folder)))
         end_time = time.time()
         print(f'Finished {name} in {time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))}')
-        utilities.acquire_lock(conn)
+        misc.utilities.acquire_lock(conn)
         cursor.execute("INSERT INTO nhentai (album_id, tags) VALUES (?, ?)", (album_id, tag))
         conn.commit()
     elif result == 1:
-        utilities.acquire_lock(conn)
+        misc.utilities.acquire_lock(conn)
         cursor.execute("SELECT tags FROM nhentai WHERE album_id = ?", (album_id,))
         conn.commit()
         album_tags = cursor.fetchone()
@@ -131,7 +131,7 @@ def album_downloader(album_id: str, media_id: str, name:str, tag: str, threads: 
                     target_dir = os.path.join(link_path, file)
                     os.link(source_dir, target_dir)
         add_tag = "," + tag
-        utilities.acquire_lock(conn)
+        misc.utilities.acquire_lock(conn)
         cursor.execute("UPDATE nhentai SET tags = tags || ? WHERE album_id = ?", (add_tag, album_id))
         conn.commit()
         print(f'Linked {name} from {sep_tags[0]}.')

@@ -1,6 +1,6 @@
 from luscious import queries
 import requests
-import config_loader
+import config_utils
 
 
 def luscious_artist_album_ids(artist):
@@ -15,7 +15,7 @@ def luscious_artist_album_ids(artist):
     artist_query = '+artist:_' + artistClean
     ids = []
     page = 1
-    config = config_loader.load_config()
+    config = config_utils.config_loader.load_config()
     if config:
         COOKIE_NAME = (config['Luscious']['cookie_name'])
         COOKIE_VALUE = (config['Luscious']['cookie_value'])        
@@ -35,7 +35,7 @@ def luscious_album_pictures(album_id):
     base_url = 'https://members.luscious.net/graphql/nobatch/?operationName=AlbumListOwnPictures'
     picture_url_list = []
     page = 1
-    config = config_loader.load_config()
+    config = config_utils.config_loader.load_config()
     if config:
         COOKIE_NAME = (config['Luscious']['cookie_name'])
         COOKIE_VALUE = (config['Luscious']['cookie_value'])        
@@ -53,7 +53,7 @@ def luscious_album_pictures(album_id):
 def luscious_album_name(album_id):
     base_url = 'https://members.luscious.net/graphql/nobatch/?operationName=AlbumGet'
     query = queries.album_info_query(album_id)
-    config = config_loader.load_config()
+    config = config_utils.config_loader.load_config()
     if config:
         COOKIE_NAME = (config['Luscious']['cookie_name'])
         COOKIE_VALUE = (config['Luscious']['cookie_value'])        
@@ -70,7 +70,7 @@ def luscious_tag_search(search_query: str, genre_ids: str = '', sorting: str = '
     page = 1
     album_list = []
     album_type = 'all'
-    config = config_loader.load_config()
+    config = config_utils.config_loader.load_config()
     if config:
         COOKIE_NAME = (config['Luscious']['cookie_name'])
         COOKIE_VALUE = (config['Luscious']['cookie_value'])  

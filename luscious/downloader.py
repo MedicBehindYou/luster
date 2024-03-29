@@ -46,4 +46,4 @@ def download(title: str, picture_url_list: list[str], album_folder: Path, item: 
     print(f'Finished {title} in {time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))}')
     if delay:
         time.sleep(delay)
-    return '0'
+    return 0

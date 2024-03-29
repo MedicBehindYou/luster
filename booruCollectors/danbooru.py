@@ -63,7 +63,7 @@ def collector(downTag):
                     break                
                 for post in data:
                     file_url = post.get('file_url')
-                    if file_url is not None:
+                    if file_url is not None and '.zip' not in file_url:
                         postCount += 1
                         downloadList.append(file_url)
             elif response.status_code == 429:

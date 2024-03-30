@@ -27,6 +27,7 @@ import misc
 from pathlib import Path
 from itertools import repeat
 import multiprocessing as mp
+from urllib.parse import unquote
 
 config = config_utils.config_loader.load_config()
 
@@ -50,8 +51,6 @@ def image_downloader(file_url, tag, dir_tag, initItems, ok_count, cpd_count, err
         
         file_match = re.search(imagePattern, file_url)
         url_match = re.search(urlPattern, file_url)
-        if file_match:
-            file = file_match.group(1)
         if url_match:
             site = url_match.group(1)
             if site == 'rule34':
@@ -64,8 +63,15 @@ def image_downloader(file_url, tag, dir_tag, initItems, ok_count, cpd_count, err
                 time.sleep(0.5)
             elif site == 'xbooru':
                 rootPath = '/app/downloads/xbooru/'
+            elif site == 'konachan':
+                rootPath = '/app/downloads/konachan/'
             else:
-                print("Site match failed for", file_url)    
+                print("Site match failed for", file_url)   
+        if file_match:
+            file = file_match.group(1) 
+            if site == 'konachan':
+                file = unquote(file)
+                print(file)
         cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file,))
         result = cursor.fetchone()[0]     
         if result == 0:

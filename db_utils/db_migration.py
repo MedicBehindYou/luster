@@ -151,7 +151,16 @@ def migrate():
 
             version = "2.5.0"
             conn.commit()
-            misc.logger.log('DB upgraded from 2.4.0 to 2.5.0')                         
+            misc.logger.log('DB upgraded from 2.4.0 to 2.5.0')     
+        if version == "2.5.0":
+            db_utils.db_backup.create_backup()
+            cursor.execute('''CREATE TABLE IF NOT EXISTS konachan (file TEXT UNIQUE, tags TEXT);''')
+            cursor.execute('''CREATE INDEX IF NOT EXISTS konachan_idx_file ON konachan (file);''')
+            cursor.execute("UPDATE version SET version = ('2.6.0') WHERE id = 1")     
+
+            version = "2.6.0"
+            conn.commit()
+            misc.logger.log('DB upgraded from 2.5.0 to 2.6.0')                      
         else:
             misc.logger.log('No available migrations.')
     except sqlite3.Error as e:

@@ -20,3 +20,4 @@ from .gelbooru import *
 from .rule34 import *
 from .preskip import *
 from .xbooru import *
+from .konachan import *

@@ -73,7 +73,7 @@ if not os.path.exists(DATABASE_DB):
 
 if not db_utils.db_migration.has_version_table(DATABASE_DB):
     db_utils.db_migration.migrate()
-if db_utils.db_migration.current_version() != "2.5.0":
+if db_utils.db_migration.current_version() != "2.6.0":
     migrateYN = input('DB is currently out of date. Run migration (y/n): ')
     if migrateYN == 'y' or migrateYN == 'Y':
         db_utils.db_migration.migrate()
@@ -202,7 +202,7 @@ try:
         downloadList = []
 
         if siteQuery == 0:
-            sites = ["rule34", "gelbooru", "danbooru", "xbooru"]            
+            sites = ["rule34", "gelbooru", "danbooru", "xbooru", "konachan"]            
             for site in sites:
                 if site == 'rule34':
                     result = booruCollectors.rule34.collector(downTag)
@@ -215,7 +215,10 @@ try:
                     downloadList.extend(result)    
                 if site == 'xbooru':
                     result = booruCollectors.xbooru.collector(downTag)
-                    downloadList.extend(result)                                      
+                    downloadList.extend(result)         
+                if site == 'konachan':
+                    result = booruCollectors.konachan.collector(downTag)
+                    downloadList.extend(result)                                
             downloadList = booruCollectors.preskip.booruSkip(downloadList, downTag)
             booruCollectors.booruDown.downloader(downloadList, downTag)
             returnCode = 0

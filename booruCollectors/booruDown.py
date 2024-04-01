@@ -65,19 +65,23 @@ def image_downloader(file_url, tag, dir_tag, initItems, ok_count, cpd_count, err
                 rootPath = '/app/downloads/xbooru/'
             elif site == 'konachan':
                 rootPath = '/app/downloads/konachan/'
+            elif site == 'yande':
+                site = 'yandere'
+                rootPath = '/app/downloads/yandere/'                
             else:
                 print("Site match failed for", file_url)   
         if file_match:
             file = file_match.group(1) 
             if site == 'konachan':
                 file = unquote(file)
-                print(file)
+            elif site == 'yandere':
+                file = unquote(file)
         cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file,))
         result = cursor.fetchone()[0]     
         if result == 0:
             try:
                 destination = rootPath + tag + file
-                response = requests.get(file_url)
+                response = requests.get(file_url, timeout=30)
                 with open(destination, 'wb') as f:
                     f.write(response.content)
                 misc.utilities.acquire_lock(conn)
@@ -109,7 +113,7 @@ def image_downloader(file_url, tag, dir_tag, initItems, ok_count, cpd_count, err
                     shutil.copyfile(source_path, destination)
             elif not os.path.exists(destination) and not os.path.exists(source_path):
                 try:
-                    response = requests.get(file_url)
+                    response = requests.get(file_url, timeout=30)
                     with open(destination, 'wb') as f:
                         f.write(response.content)
                     shutil.copyfile(destination, source_path)

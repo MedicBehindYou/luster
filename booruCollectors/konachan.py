@@ -70,7 +70,6 @@ def collector(downTag):
                 if response.status_code == 200:
                     data = response.json()
                     if str(data) == '[]':
-                        page = page + 1
                         print("Page", page, "is empty. Stopping Collection.")
                         end = 1
                         break                

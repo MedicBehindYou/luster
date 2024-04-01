@@ -20,6 +20,7 @@ import sqlite3
 import re
 import time
 import misc
+from urllib.parse import unquote
 
 config = config_utils.config_loader.load_config()
 
@@ -63,17 +64,13 @@ def booruSkip(downloadList, downTag):
             time.sleep(5)
         if url_match:
             site = url_match.group(1)
-            if site == 'rule34':
-                rootPath = '/app/downloads/rule34/'
-            elif site == 'gelbooru':
-                rootPath = '/app/downloads/gelbooru/'
-            elif site == "donmai":
-                site = "danbooru"
-                rootpath = '/app/downloads/danbooru/'
-            elif site == 'xbooru':
-                rootpath = '/app/downloads/xbooru/'
-            elif site == 'konachan':
-                rootpath = '/app/downloads/konachan/'
+            if site == 'konachan':
+                file = unquote(file)
+            elif site == 'yande':
+                site = 'yandere'
+                file = unquote(file)
+            elif site == 'donmai':
+                site = "danbooru"                
             misc.utilities.acquire_lock(conn)
             cursor.execute("SELECT EXISTS(SELECT 1 FROM {} WHERE file = ? LIMIT 1)".format(site), (file,))
             result = cursor.fetchone()[0]

@@ -25,8 +25,103 @@ import sqlite3
 import misc
 import json
 import os
+import zipfile
+from comic_info.xml_gen import ComicInfo
+import comic_info
 
+def zip_album(directory, filename):
+    config = config_utils.config_loader.load_config()
+    if config:
+        del_files = (config['Nhentai']['del_files'])  
+    else:
+        misc.logger.log('Configuration not loaded.')
+        sys.exit()
+    with zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, _, files in os.walk(directory):
+            for file in files:
+                file_path = os.path.join(root, file)
+                if file_path != filename:
+                    zipf.write(file_path, os.path.relpath(file_path, directory))
+                    if del_files == '1':
+                        os.remove(file_path)
 
+def createXML(album_id, name, directory):
+    config = config_utils.config_loader.load_config()
+    if config:
+        DATABASE_DB = (config['General']['database_db'])
+        LOG_TXT = (config['General']['log_txt'])  
+        cookies = (config['Nhentai']['cookies'])  
+        USER_AGENT = (config['Nhentai']['user_agent'])  
+    else:
+        misc.logger.log('Configuration not loaded.')
+        sys.exit()
+    cookies = json.loads(cookies)
+    headers = {'User-Agent': USER_AGENT}  
+    query = f'https://nhentai.net/api/gallery/{album_id}'
+    response = requests.get(query, headers=headers, cookies=cookies)
+    data = response.json()
+    tags = []
+    parodies = []
+    Characters = []
+    language = []
+    category = []
+    artist = []
+    comic = ComicInfo()
+    for tag in data['tags']:
+        if tag['type'] == 'tag':
+            tags.append(tag['name'])
+        elif tag['type'] == 'parody':
+            parodies.append(tag['name'])
+        elif tag['type'] == 'character':
+            Characters.append(tag['name'])
+        elif tag['type'] == 'language':
+            language.append(tag['name'])
+        elif tag['type'] == 'category':
+            category.append(tag['name'])
+        elif tag['type'] == 'artist':
+            artist.append(tag['name'])
+    if len(tags) > 1 and tags != []:
+        tags = ','.join(tags)
+        comic.set_element("Tags", tags)
+    elif len(tags) == 1:
+        tags = tags[0]
+        comic.set_element("Tags", tags)
+    if len(parodies) > 1 and parodies != []:
+        parodies = ','.join(parodies)
+        comic.set_element("Teams", parodies)
+    elif len(parodies) == 1:
+        parodies = parodies[0]
+        comic.set_element("Teams", parodies)
+    if len(Characters) > 1 and Characters != []:
+        Characters = ','.join(Characters)
+        comic.set_element("Characters", Characters)
+    elif len(Characters) == 1:
+        Characters = Characters[0]
+        comic.set_element("Characters", Characters)
+    if len(language) > 1 and language != []:
+        language = ','.join(language)
+    elif len(language) == 1:
+        language = language[0]
+        lang = comic_info.utils.lang_tag(language)
+        if lang is not False:
+            comic.set_element("Language", lang)
+    if len(category) > 1 and category != []:
+        category = ','.join(category)
+        comic.set_element("Genre", category)
+    elif len(category) == 1:
+        category = category[0]
+        comic.set_element("Genre", category)
+    if len(artist) > 1 and artist != []:
+        artist = ','.join(artist)
+        comic.set_element("Penciller", artist)
+    elif len(artist) == 1:
+        artist = artist[0]
+        comic.set_element("Penciller", artist)   
+    comic.set_element("Title", name)
+    
+    file = f'{directory}/ComicInfo.xml'
+    comic.save(file)
+    
 def album_page_query(album_id):
     config = config_utils.config_loader.load_config()
     if config:
@@ -61,6 +156,7 @@ def page_downloader(album_id: str, page: str, name: str, tag: str, media_id: str
     else:
         misc.logger.log('Configuration not loaded.')
         sys.exit()
+    log_file = open(LOG_TXT, 'a')
     cookies = json.loads(cookies)
     headers = {'User-Agent': USER_AGENT}    
     page_num = str(page[0])
@@ -100,10 +196,11 @@ def album_downloader(album_id: str, media_id: str, name:str, tag: str, threads: 
     if config:
         DATABASE_DB = (config['General']['database_db'])
         LOG_TXT = (config['General']['log_txt'])      
+        ZIP_ALBUMS = (config['Nhentai']['zip_albums']) 
     else:
         misc.logger.log('Configuration not loaded.')
         sys.exit()
-
+    log_file = open(LOG_TXT, 'a')
     conn = sqlite3.connect(DATABASE_DB, timeout=20)
     cursor = conn.cursor()
     try:
@@ -114,6 +211,10 @@ def album_downloader(album_id: str, media_id: str, name:str, tag: str, threads: 
     album_id = str(album_id)
     album_folder = '[' + album_id + '] ' + name
     album_folder = str(album_folder)
+    chars_to_replace = ['/', '<', '>', ':', '"', "\\", '|', '?', '*', "'"]
+    replacement_char = ''
+    for char in chars_to_replace:
+        name = name.replace(char, replacement_char)
     while len(album_folder) > 172:
         album_folder = album_folder[:-1]   
     album_folder = Path(album_folder)    
@@ -129,9 +230,20 @@ def album_downloader(album_id: str, media_id: str, name:str, tag: str, threads: 
         pool.starmap(page_downloader, zip(repeat(album_id), pages, repeat(name), repeat(tag), repeat(media_id), repeat(album_folder)))
         end_time = time.time()
         print(f'Finished {name} in {time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))}')
+        if ZIP_ALBUMS == '1':
+            directory = f'/app/downloads/nhentai/{tag}/{str(album_folder)}'
+            filename = f'{directory}/{album_folder}.cbz'
+            if not os.path.exists(filename):
+                createXML(album_id, name, directory)
+                print(f'starting zip of {album_folder}')
+                start_time = time.time()
+                zip_album(directory, filename)
+                end_time = time.time()
+                print(f'Finished zipping {name} in {time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))}')
         misc.utilities.acquire_lock(conn)
         cursor.execute("INSERT INTO nhentai (album_id, tags) VALUES (?, ?)", (album_id, tag))
         conn.commit()
+            
     elif result == 1:
         misc.utilities.acquire_lock(conn)
         cursor.execute("SELECT tags FROM nhentai WHERE album_id = ?", (album_id,))

@@ -160,7 +160,16 @@ def migrate():
 
             version = "2.6.0"
             conn.commit()
-            misc.logger.log('DB upgraded from 2.5.0 to 2.6.0')                      
+            misc.logger.log('DB upgraded from 2.5.0 to 2.6.0')       
+        if version == "2.6.0":
+            db_utils.db_backup.create_backup()
+            cursor.execute('''CREATE TABLE IF NOT EXISTS yandere (file TEXT UNIQUE, tags TEXT);''')
+            cursor.execute('''CREATE INDEX IF NOT EXISTS yandere_idx_file ON yandere (file);''')
+            cursor.execute("UPDATE version SET version = ('2.7.0') WHERE id = 1")     
+
+            version = "2.7.0"
+            conn.commit()
+            misc.logger.log('DB upgraded from 2.6.0 to 2.7.0')                                
         else:
             misc.logger.log('No available migrations.')
     except sqlite3.Error as e:

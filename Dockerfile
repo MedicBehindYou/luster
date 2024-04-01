@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     python3
 
-RUN pip install -U pip numpy scipy matplotlib pandas seaborn configparser requests --break-system-packages
+RUN pip install -U pip numpy scipy matplotlib pandas seaborn configparser requests lxml langcodes[data] --break-system-packages
 
 COPY . /app
 
